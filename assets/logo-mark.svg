@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Arr Grooming Salon">
+  <circle cx="56" cy="56" r="52" fill="#EE5FA7"/>
+  <circle cx="56" cy="56" r="44.5" fill="none" stroke="#FFFFFF" stroke-opacity=".6" stroke-width="1.8" stroke-dasharray="3.2 4.2" stroke-linecap="round"/>
+  <path d="M56.5 39.5 L82 17.6 C84.2 15.7 87.8 17 87.5 20 L80 51.5 Z" fill="#26225E"/>
+  <path d="M64 38.6 L81.4 24 L78.6 45 Z" fill="#F9B3D6"/>
+  <ellipse cx="53" cy="60" rx="28" ry="25" fill="#FFF6EC"/>
+  <circle cx="40" cy="69" r="4.2" fill="#F9B3D6" opacity=".75"/>
+  <circle cx="66" cy="69" r="4.2" fill="#F9B3D6" opacity=".75"/>
+  <circle cx="43.5" cy="59" r="3.9" fill="#26225E"/>
+  <ellipse cx="62.5" cy="59" rx="3.4" ry="4.2" fill="#26225E"/>
+  <circle cx="44.6" cy="57.8" r="1.2" fill="#FFFFFF"/>
+  <circle cx="63.4" cy="57.6" r="1.1" fill="#FFFFFF"/>
+  <path d="M48 67.6 C48 65.4 58 65.4 58 67.6 C58 70.2 55 72.6 53 72.6 C51 72.6 48 70.2 48 67.6 Z" fill="#26225E"/>
+  <path d="M53 72.6 V75.2 M53 75.2 C51.2 78.2 47.4 78.2 46.2 76.2 M53 75.2 C54.8 78.2 58.6 78.2 59.8 76.2" fill="none" stroke="#26225E" stroke-width="2" stroke-linecap="round"/>
+  <path d="M68.6 68.2 L79.4 66.6 M69 72.2 L80 73.2" fill="none" stroke="#26225E" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M37.5 41.5 C28 34.5 15.5 40 14.6 53.5 C13.8 65.6 16.8 76.6 24.6 79.4 C30.8 81.6 34.6 73.4 36 64 C36.9 57.6 37.8 49 37.5 41.5 Z" fill="#26225E"/>
+  <g transform="translate(96 96) rotate(45)">
+    <rect x="-15" y="-8.5" width="38" height="17" rx="8.5" fill="#FFC845" stroke="#26225E" stroke-width="3"/>
+    <path d="M-15 -9.5 H-21.5 A3.2 3.2 0 0 0 -24.7 -6.3 V6.3 A3.2 3.2 0 0 0 -21.5 9.5 H-15 Z" fill="#26225E"/>
+    <path d="M-25 -6 H-28.4 M-25 -2 H-28.4 M-25 2 H-28.4 M-25 6 H-28.4" stroke="#26225E" stroke-width="2" stroke-linecap="round"/>
+    <rect x="-3.5" y="-3.6" width="11" height="7.2" rx="3.6" fill="#26225E"/>
+    <path d="M23 0 H27.5" stroke="#26225E" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>

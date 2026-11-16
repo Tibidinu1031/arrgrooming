@@ -1,29 +1,109 @@
-const menuButton = document.querySelector(".menu-toggle");
-const navigation = document.querySelector("#navigation");
-const header = document.querySelector(".site-header");
-const mobileCall = document.querySelector(".mobile-call");
-const dialog = document.querySelector("#appointment-dialog");
+"use strict";
+
+/* =========================================================================
+   Datele salonului. Modifică aici programul, serviciile și duratele.
+   ========================================================================= */
+const SALON = {
+  name: "Arr Grooming Salon",
+  phone: "+40744134819",
+  phoneDisplay: "0744 134 819",
+  whatsapp: "40744134819",
+  address: "Str. 1 Decembrie 1918 nr. 1, Bl. S5C, parter, Galați",
+  timeZone: "Europe/Bucharest",
+  // Index după Date.getDay(): 0 = duminică ... 6 = sâmbătă. [deschidere, închidere] în ore.
+  hours: { 0: null, 1: [9, 18], 2: [9, 18], 3: [9, 18], 4: [9, 18], 5: [9, 18], 6: [9, 14] },
+  slotStep: 30, // minute între orele de început propuse
+  leadMinutes: 60, // cu cât timp înainte se poate cere o programare în ziua curentă
+  horizonDays: 60, // câte zile în avans se pot trimite cereri
+  // Opțional: un URL (de ex. Formspree sau Google Apps Script) care primește cererea ca JSON.
+  // Gol = cererea se trimite de pe telefonul clientului, prin WhatsApp sau SMS.
+  bookingEndpoint: "",
+};
+
+const SIZES = { small: "talie mică", medium: "talie medie", large: "talie mare" };
+
+// Durate estimative, în minute (confirmate telefonic la programare).
+const SERVICES = [
+  { id: "complet", name: "Toaletaj complet", icon: "i-sparkle", pets: ["dog"], desc: "Baie, uscare, tuns, unghii și urechi", duration: { small: 90, medium: 120, large: 150 } },
+  { id: "tuns", name: "Tuns & styling", icon: "i-scissors", pets: ["dog"], desc: "Pe rasă, Teddy, de vară sau igienic", duration: { small: 75, medium: 90, large: 120 } },
+  { id: "baie", name: "Baie & periaj", icon: "i-bath", pets: ["dog", "cat"], desc: "Spălat, uscat, periat, descâlcire ușoară", duration: { small: 60, medium: 75, large: 90, cat: 60 } },
+  { id: "pisici", name: "Grooming pisici", icon: "i-cat", pets: ["cat"], desc: "Baie, periaj, descâlcire, tuns la nevoie", duration: { cat: 90 } },
+  { id: "unghii", name: "Unghii & urechi", icon: "i-paw", pets: ["dog", "cat"], desc: "Tăiat unghii și curățat urechi", duration: { small: 30, medium: 30, large: 30, cat: 30 } },
+  { id: "vopsit", name: "Vopsit creativ", icon: "i-palette", pets: ["dog"], desc: "Accente de culoare pe blăniță", duration: { small: 60, medium: 90, large: 120 } },
+];
+
+/* ========================================================================= */
+
+const $ = (selector, scope = document) => scope.querySelector(selector);
+const $$ = (selector, scope = document) => [...scope.querySelectorAll(selector)];
+const root = document.documentElement;
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
+const DAY_NAMES = ["duminică", "luni", "marți", "miercuri", "joi", "vineri", "sâmbătă"];
+
+const pad = (n) => String(n).padStart(2, "0");
+const fmtTime = (minutes) => `${pad(Math.floor(minutes / 60))}:${pad(minutes % 60)}`;
+const capitalize = (text) => text.charAt(0).toUpperCase() + text.slice(1);
+const escapeHtml = (text) =>
+  String(text).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+function fmtDuration(minutes) {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h && m) return `${h} h ${m} min`;
+  return h ? `${h} h` : `${m} min`;
+}
+function joinRo(items) {
+  return items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} și ${items.at(-1)}`;
+}
+
+/* ---------- Toast ---------- */
+const toast = $("#toast");
+let toastTimer = 0;
+function showToast(message) {
+  if (!toast) return;
+  toast.textContent = message;
+  toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove("show"), 2800);
+}
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    const area = document.createElement("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "");
+    area.style.cssText = "position:fixed;opacity:0;top:0;left:0";
+    document.body.append(area);
+    area.select();
+    let ok = false;
+    try {
+      ok = document.execCommand("copy");
+    } catch {}
+    area.remove();
+    return ok;
+  }
+}
+
+/* ---------- Header & menu ---------- */
+const header = $(".site-header");
+const menuButton = $(".menu-toggle");
+const navigation = $("#navigation");
 
 function closeMenu() {
+  if (!menuButton) return;
   menuButton.setAttribute("aria-expanded", "false");
   menuButton.setAttribute("aria-label", "Deschide meniul");
   navigation.classList.remove("open");
 }
-
-menuButton.addEventListener("click", () => {
+menuButton?.addEventListener("click", () => {
   const open = menuButton.getAttribute("aria-expanded") !== "true";
   menuButton.setAttribute("aria-expanded", String(open));
-  menuButton.setAttribute(
-    "aria-label",
-    open ? "Închide meniul" : "Deschide meniul",
-  );
+  menuButton.setAttribute("aria-label", open ? "Închide meniul" : "Deschide meniul");
   navigation.classList.toggle("open", open);
 });
-
-navigation
-  .querySelectorAll("a")
-  .forEach((link) => link.addEventListener("click", closeMenu));
+$$("a", navigation).forEach((link) => link.addEventListener("click", closeMenu));
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && navigation.classList.contains("open")) {
     closeMenu();
@@ -37,165 +117,850 @@ header.addEventListener("focusout", (event) => {
   if (event.relatedTarget && !header.contains(event.relatedTarget)) closeMenu();
 });
 
-// Keep telephone links functional when JavaScript or native dialogs are unavailable.
-if (typeof dialog.showModal === "function") {
-  document.querySelectorAll("[data-appointment]").forEach((link) => {
-    link.addEventListener("click", (event) => {
-      if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey)
-        return;
-      event.preventDefault();
-      closeMenu();
-      dialog.showModal();
-      mobileCall.classList.remove("visible");
-    });
-  });
-  dialog
-    .querySelector(".dialog-close")
-    .addEventListener("click", () => dialog.close());
-  dialog.addEventListener("click", (event) => {
-    const box = dialog.getBoundingClientRect();
-    if (
-      event.target === dialog &&
-      (event.clientX < box.left ||
-        event.clientX > box.right ||
-        event.clientY < box.top ||
-        event.clientY > box.bottom)
-    )
-      dialog.close();
-  });
-  dialog.addEventListener("keydown", (event) => {
-    if (event.key !== "Tab") return;
-    const controls = [
-      ...dialog.querySelectorAll("a[href], button:not([disabled])"),
-    ];
-    const first = controls[0],
-      last = controls.at(-1);
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
-  });
-  dialog.addEventListener("close", updateScroll);
-}
+/* ---------- Scroll-driven UI ---------- */
+const hero = $(".hero");
+const mobileBar = $(".mobile-bar");
+const toTop = $(".to-top");
+const bookingSection = $("#programari");
+const contactSection = $("#contact");
+const siteFooter = $(".site-footer");
+const steps = $(".steps");
+const stepItems = $$(".step");
+const dialog = $("#booking-dialog");
+const navLinks = $$('#navigation > a[href^="#"]');
+const navTargets = navLinks.map((link) => $(link.getAttribute("href")));
+let typing = false;
+let scrollScheduled = false;
 
-const sectionLinks = [...navigation.querySelectorAll('a[href^="#"]')];
-const sections = sectionLinks.map((link) =>
-  document.querySelector(link.getAttribute("href")),
-);
-const contact = document.querySelector("#contact");
-let scheduled = false;
 function updateScroll() {
-  header.classList.toggle("scrolled", scrollY > 50);
-  const range = document.documentElement.scrollHeight - innerHeight;
-  header.style.setProperty(
-    "--reading-progress",
-    range > 0 ? Math.min(1, scrollY / range) : 0,
-  );
-  const contactVisible =
-    contact.getBoundingClientRect().top < innerHeight * 0.75;
-  mobileCall.classList.toggle(
-    "visible",
-    scrollY > 580 && !contactVisible && !dialog.open,
-  );
-  let current = null;
-  sections.forEach((section, index) => {
-    if (section.getBoundingClientRect().top <= header.offsetHeight + 150)
-      current = index;
+  scrollScheduled = false;
+  const y = window.scrollY;
+  const vh = window.innerHeight;
+  header.classList.toggle("scrolled", y > 8);
+  const range = root.scrollHeight - vh;
+  root.style.setProperty("--reading-progress", range > 0 ? Math.min(1, y / range).toFixed(4) : 0);
+
+  let current = -1;
+  navTargets.forEach((section, index) => {
+    if (section && section.getBoundingClientRect().top <= header.offsetHeight + 140) current = index;
   });
-  sectionLinks.forEach((link, index) => {
+  navLinks.forEach((link, index) => {
     if (index === current) link.setAttribute("aria-current", "location");
     else link.removeAttribute("aria-current");
   });
-  scheduled = false;
+
+  const footerTop = siteFooter ? siteFooter.getBoundingClientRect().top : Infinity;
+  toTop?.classList.toggle("visible", y > vh * 0.9 && footerTop > vh - 40);
+
+  if (mobileBar) {
+    const booking = bookingSection.getBoundingClientRect();
+    const inBooking = booking.top < vh * 0.7 && booking.bottom > vh * 0.3;
+    const nearContact = contactSection.getBoundingClientRect().top < vh * 0.85;
+    const pastHero = y > (hero ? hero.offsetHeight * 0.7 : 400);
+    mobileBar.classList.toggle("visible", pastHero && !inBooking && !nearContact && !typing && !(dialog && dialog.open));
+  }
+
+  if (steps) {
+    const box = steps.getBoundingClientRect();
+    const progress = Math.min(1, Math.max(0, (vh * 0.78 - box.top) / (box.height + vh * 0.25)));
+    steps.style.setProperty("--steps-progress", progress.toFixed(3));
+    stepItems.forEach((item, index) => item.classList.toggle("is-lit", progress * 3 >= index - 0.05 && progress > 0.02));
+  }
 }
-window.addEventListener(
-  "scroll",
-  () => {
-    if (!scheduled) {
-      scheduled = true;
-      requestAnimationFrame(updateScroll);
-    }
-  },
-  { passive: true },
-);
+function requestScrollUpdate() {
+  if (!scrollScheduled) {
+    scrollScheduled = true;
+    requestAnimationFrame(updateScroll);
+  }
+}
+window.addEventListener("scroll", requestScrollUpdate, { passive: true });
+window.addEventListener("resize", () => {
+  if (window.innerWidth > 1180) closeMenu();
+  requestScrollUpdate();
+});
+document.addEventListener("focusin", (event) => {
+  if (event.target.matches("input:not([type=radio]), textarea")) {
+    typing = true;
+    requestScrollUpdate();
+  }
+});
+document.addEventListener("focusout", (event) => {
+  if (event.target.matches("input:not([type=radio]), textarea")) {
+    typing = false;
+    requestScrollUpdate();
+  }
+});
+toTop?.addEventListener("click", () => window.scrollTo({ top: 0, behavior: reducedMotion.matches ? "auto" : "smooth" }));
 updateScroll();
 
-const track = document.querySelector("#team-track");
-const previous = document.querySelector("#team-prev");
-const next = document.querySelector("#team-next");
-const position = document.querySelector("#team-position");
-const doctors = [...track.querySelectorAll(".doctor")];
-function moveTeam(direction) {
-  const step =
-    doctors[0].getBoundingClientRect().width +
-    parseFloat(getComputedStyle(track).gap);
-  track.scrollBy({
-    left: direction * step,
-    behavior: reducedMotion.matches ? "instant" : "smooth",
+/* ---------- Opening status (always in Romanian time) ---------- */
+function salonNow() {
+  try {
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone: SALON.timeZone,
+      weekday: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    }).formatToParts(new Date());
+    const get = (type) => parts.find((part) => part.type === type).value;
+    const day = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(get("weekday"));
+    return { day, minutes: Number(get("hour")) * 60 + Number(get("minute")) };
+  } catch {
+    const now = new Date();
+    return { day: now.getDay(), minutes: now.getHours() * 60 + now.getMinutes() };
+  }
+}
+function openingStatus() {
+  const { day, minutes } = salonNow();
+  const today = SALON.hours[day];
+  if (today && minutes >= today[0] * 60 && minutes < today[1] * 60) {
+    const until = fmtTime(today[1] * 60);
+    return { open: true, day, long: `Deschis acum · până la ${until}`, short: `Deschis acum · până la ${until}` };
+  }
+  if (today && minutes < today[0] * 60) {
+    const at = fmtTime(today[0] * 60);
+    return { open: false, day, long: `Închis acum · deschidem azi la ${at}`, short: `Deschidem azi la ${at}` };
+  }
+  for (let offset = 1; offset <= 7; offset++) {
+    const next = (day + offset) % 7;
+    const hours = SALON.hours[next];
+    if (hours) {
+      const when = offset === 1 ? "mâine" : DAY_NAMES[next];
+      const at = fmtTime(hours[0] * 60);
+      return { open: false, day, long: `Închis acum · deschidem ${when} la ${at}`, short: `Deschidem ${when} la ${at}` };
+    }
+  }
+  return { open: false, day, long: "Închis", short: "Închis" };
+}
+function renderStatus() {
+  const status = openingStatus();
+  $$("[data-open-status]").forEach((element) => {
+    element.classList.toggle("is-closed", !status.open);
+    const text = $("[data-status-text]", element);
+    if (text) text.textContent = element.classList.contains("hv-chip") ? status.short : status.long;
   });
+  $$("#hours > div").forEach((row) => row.classList.toggle("is-today", Number(row.dataset.day) === status.day));
 }
-function updateTeam() {
-  previous.disabled = track.scrollLeft < 5;
-  next.disabled = track.scrollLeft + track.clientWidth >= track.scrollWidth - 5;
-  const viewport = track.getBoundingClientRect();
-  const visible = doctors
-    .map((doctor, index) => ({ index, box: doctor.getBoundingClientRect() }))
-    .filter(
-      ({ box }) =>
-        Math.min(box.right, viewport.right) -
-          Math.max(box.left, viewport.left) >
-        box.width * 0.6,
-    );
-  if (visible.length) {
-    const pad = (number) => String(number).padStart(2, "0");
-    const first = visible[0].index + 1;
-    const last = visible.at(-1).index + 1;
-    const label = `${pad(first)}${first === last ? "" : " — " + pad(last)} / ${pad(doctors.length)}`;
-    if (position.textContent !== label) position.textContent = label;
-  }
-}
-previous.addEventListener("click", () => moveTeam(-1));
-next.addEventListener("click", () => moveTeam(1));
-track.addEventListener("scroll", updateTeam, { passive: true });
-track.addEventListener("keydown", (event) => {
-  if (
-    event.target === track &&
-    (event.key === "ArrowRight" || event.key === "ArrowLeft")
-  ) {
-    event.preventDefault();
-    moveTeam(event.key === "ArrowRight" ? 1 : -1);
-  }
-});
-window.addEventListener("resize", () => {
-  updateTeam();
-  updateScroll();
-  if (innerWidth > 900) closeMenu();
-});
-updateTeam();
-document.fonts.ready.then(updateTeam);
-document.querySelector("#year").textContent = new Date().getFullYear();
+renderStatus();
+setInterval(renderStatus, 60000);
 
+/* ---------- Reveal on scroll & counters ---------- */
+function animateCount(element) {
+  const target = Number(element.dataset.count);
+  const decimals = Number(element.dataset.decimals || 0);
+  const format = (value) => value.toFixed(decimals).replace(".", ",");
+  if (reducedMotion.matches) {
+    element.textContent = format(target);
+    return;
+  }
+  const start = performance.now();
+  const duration = 1300;
+  const tick = (now) => {
+    const t = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - t, 3);
+    element.textContent = format(target * eased);
+    if (t < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
 if ("IntersectionObserver" in window && !reducedMotion.matches) {
+  root.classList.add("js-reveal");
+  const revealables = $$("[data-reveal], .section-label");
+  revealables.forEach((element) => {
+    if (!element.hasAttribute("data-reveal")) return;
+    const siblings = [...element.parentElement.children].filter((child) => child.hasAttribute("data-reveal"));
+    element.style.setProperty("--stagger", Math.max(0, siblings.indexOf(element)));
+  });
   const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("visible");
-          observer.unobserve(entry.target);
-        }
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("is-visible");
+        $$("[data-count]", entry.target).forEach(animateCount);
+        observer.unobserve(entry.target);
       });
     },
-    { threshold: 0.08 },
+    { threshold: 0.12, rootMargin: "0px 0px -6% 0px" },
   );
-  document
-    .querySelectorAll(
-      ".intro-grid, .section-heading, .community-copy, .contact-grid",
-    )
-    .forEach((element) => {
-      element.classList.add("reveal");
-      observer.observe(element);
+  revealables.forEach((element) => observer.observe(element));
+} else {
+  root.classList.add("no-reveal");
+}
+
+/* ---------- Pointer effects (desktop only) ---------- */
+if (finePointer.matches && !reducedMotion.matches) {
+  const visual = $(".hero-visual");
+  if (visual) {
+    const layers = $$("[data-depth]", visual);
+    let frame = 0;
+    let tx = 0;
+    let ty = 0;
+    const apply = () => {
+      frame = 0;
+      layers.forEach((layer) => {
+        const depth = Number(layer.dataset.depth) * 1.6;
+        layer.style.translate = `${(tx * depth).toFixed(1)}px ${(ty * depth).toFixed(1)}px`;
+      });
+    };
+    visual.addEventListener("pointermove", (event) => {
+      const box = visual.getBoundingClientRect();
+      tx = (event.clientX - box.left) / box.width - 0.5;
+      ty = (event.clientY - box.top) / box.height - 0.5;
+      if (!frame) frame = requestAnimationFrame(apply);
     });
+    visual.addEventListener("pointerleave", () => {
+      tx = 0;
+      ty = 0;
+      if (!frame) frame = requestAnimationFrame(apply);
+    });
+  }
+
+  $$(".magnetic").forEach((element) => {
+    element.addEventListener("pointermove", (event) => {
+      const box = element.getBoundingClientRect();
+      const x = event.clientX - box.left - box.width / 2;
+      const y = event.clientY - box.top - box.height / 2;
+      element.style.transform = `translate(${(x * 0.16).toFixed(1)}px, ${(y * 0.28).toFixed(1)}px)`;
+    });
+    element.addEventListener("pointerleave", () => (element.style.transform = ""));
+  });
+
+  $$(".tilt").forEach((element) => {
+    element.addEventListener("pointermove", (event) => {
+      const box = element.getBoundingClientRect();
+      const x = (event.clientX - box.left) / box.width - 0.5;
+      const y = (event.clientY - box.top) / box.height - 0.5;
+      element.style.transform = `perspective(900px) rotateX(${(-y * 8).toFixed(2)}deg) rotateY(${(x * 10).toFixed(2)}deg) translateY(-4px)`;
+    });
+    element.addEventListener("pointerleave", () => (element.style.transform = ""));
+  });
+
+  $$(".service").forEach((item) => {
+    item.addEventListener("pointermove", (event) => {
+      const box = item.getBoundingClientRect();
+      item.style.setProperty("--mx", `${event.clientX - box.left}px`);
+      item.style.setProperty("--my", `${event.clientY - box.top}px`);
+    });
+  });
+}
+if (reducedMotion.matches) {
+  $$(".hv-path").forEach((svg) => svg.pauseAnimations?.());
+}
+
+/* ---------- Animated accordions ---------- */
+function setupAccordion(items) {
+  items.forEach((details) => {
+    const group = details.getAttribute("name");
+    if (group) {
+      details.dataset.group = group;
+      details.removeAttribute("name");
+    }
+    const summary = $("summary", details);
+    summary.addEventListener("click", (event) => {
+      event.preventDefault();
+      const opening = !details.open;
+      if (opening && details.dataset.group) {
+        items
+          .filter((other) => other !== details && other.open && other.dataset.group === details.dataset.group)
+          .forEach((other) => toggleDetails(other, false));
+      }
+      toggleDetails(details, opening);
+    });
+  });
+}
+function toggleDetails(details, open) {
+  const summary = $("summary", details);
+  if (details._animation) details._animation.cancel();
+  if (reducedMotion.matches || !details.animate) {
+    details.open = open;
+    return;
+  }
+  const startHeight = details.offsetHeight;
+  const border = details.offsetHeight - details.clientHeight;
+  if (open) details.open = true;
+  const endHeight = open ? details.offsetHeight : summary.offsetHeight + border;
+  details.style.overflow = "hidden";
+  const animation = details.animate(
+    [{ height: `${startHeight}px` }, { height: `${endHeight}px` }],
+    { duration: open ? 460 : 340, easing: "cubic-bezier(0.22, 1, 0.36, 1)" },
+  );
+  details._animation = animation;
+  animation.onfinish = () => {
+    if (!open) details.open = false;
+    details.style.overflow = "";
+    details._animation = null;
+  };
+  animation.oncancel = () => {
+    details.style.overflow = "";
+  };
+}
+setupAccordion($$(".service"));
+setupAccordion($$(".faq-item"));
+
+/* ---------- Copy phone ---------- */
+$$("[data-copy]").forEach((button) => {
+  button.addEventListener("click", async () => {
+    const ok = await copyText(button.dataset.copy);
+    showToast(ok ? "Numărul a fost copiat." : `Numărul nostru: ${button.dataset.copy}`);
+    button.classList.add("copied");
+    setTimeout(() => button.classList.remove("copied"), 1600);
+  });
+});
+
+/* ---------- Footer year ---------- */
+const year = $("#year");
+if (year) year.textContent = new Date().getFullYear();
+
+/* =========================================================================
+   Calendarul de programări
+   ========================================================================= */
+const booker = $("#booker");
+if (booker) initBooking();
+
+function initBooking() {
+  const startOfDay = (date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const addDays = (date, days) => new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
+  const addMonths = (date, months) => {
+    const target = new Date(date.getFullYear(), date.getMonth() + months, 1);
+    const last = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+    return new Date(target.getFullYear(), target.getMonth(), Math.min(date.getDate(), last));
+  };
+  const sameDay = (a, b) => a && b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  const iso = (date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  const parseIso = (value) => {
+    const [y, m, d] = value.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  };
+
+  const fmtMonth = new Intl.DateTimeFormat("ro-RO", { month: "long", year: "numeric" });
+  const fmtDay = new Intl.DateTimeFormat("ro-RO", { weekday: "long", day: "numeric", month: "long" });
+  const fmtDayYear = new Intl.DateTimeFormat("ro-RO", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+
+  const today = startOfDay(new Date());
+  const maxDate = addDays(today, SALON.horizonDays);
+  const state = { pet: "dog", size: "small", service: null, date: null, time: null, view: new Date(today.getFullYear(), today.getMonth(), 1) };
+  let focusDate = null;
+
+  const serviceBox = $("#service-options");
+  const sizeGroup = $("#size-group");
+  const calBody = $("#cal-body");
+  const calTitle = $("#cal-title");
+  const calPrev = $("#cal-prev");
+  const calNext = $("#cal-next");
+  const calNote = $("#cal-note");
+  const slotsBox = $("#slots");
+  const slotsTitle = $("#slots-title");
+  const slotsSub = $("#slots-sub");
+  const slotGroups = $("#slot-groups");
+  const hint = $("#summary-hint");
+  const progressBar = $(".summary-progress span");
+  const fields = {
+    name: $("#f-name"),
+    phone: $("#f-phone"),
+    petName: $("#f-petname"),
+    breed: $("#f-breed"),
+    notes: $("#f-notes"),
+  };
+  const defaultNote = `Duminica salonul este închis. Poți trimite cereri cu până la ${SALON.horizonDays} de zile înainte.`;
+  calNote.textContent = defaultNote;
+
+  const currentService = () => SERVICES.find((service) => service.id === state.service) || null;
+  const durationOf = (service) => (state.pet === "cat" ? service.duration.cat : service.duration[state.size]);
+  const duration = () => {
+    const service = currentService();
+    return service ? durationOf(service) : null;
+  };
+
+  function slotsFor(date) {
+    const hours = SALON.hours[date.getDay()];
+    if (!hours) return [];
+    const length = duration() || SALON.slotStep;
+    const open = hours[0] * 60;
+    const close = hours[1] * 60;
+    const now = new Date();
+    const earliest = sameDay(date, now) ? now.getHours() * 60 + now.getMinutes() + SALON.leadMinutes : -1;
+    const list = [];
+    for (let minute = open; minute + length <= close; minute += SALON.slotStep) {
+      if (minute >= earliest) list.push(minute);
+    }
+    return list;
+  }
+  function dayState(date) {
+    if (date < today) return "past";
+    if (date > maxDate) return "out";
+    if (!SALON.hours[date.getDay()]) return "closed";
+    return slotsFor(date).length ? "available" : "full";
+  }
+  const stateLabel = {
+    available: "",
+    closed: ", salonul este închis",
+    past: ", zi trecută",
+    out: ", încă indisponibil",
+    full: ", fără ore libere",
+  };
+  const stateNote = {
+    closed: "Duminica salonul este închis. Alege altă zi.",
+    past: "Ziua aceasta a trecut. Alege o zi din viitor.",
+    out: `Poți trimite cereri cu până la ${SALON.horizonDays} de zile înainte.`,
+    full: "Pentru această zi nu mai sunt ore potrivite. Alege altă zi.",
+  };
+
+  function renderServices() {
+    const list = SERVICES.filter((service) => service.pets.includes(state.pet));
+    if (state.service && !list.some((service) => service.id === state.service)) state.service = null;
+    serviceBox.innerHTML = list
+      .map(
+        (service) => `<label class="svc-option">
+          <input type="radio" name="service" value="${service.id}"${service.id === state.service ? " checked" : ""} />
+          <span class="svc-card">
+            <span class="svc-ico" aria-hidden="true"><svg class="icon"><use href="#${service.icon}"></use></svg></span>
+            <span class="svc-name">${escapeHtml(service.name)}</span>
+            <span class="svc-desc">${escapeHtml(service.desc)}</span>
+            <span class="svc-dur"><svg class="icon" aria-hidden="true"><use href="#i-clock"></use></svg>aprox. ${fmtDuration(durationOf(service))}</span>
+          </span>
+        </label>`,
+      )
+      .join("");
+  }
+
+  function firstFocusable(year, month) {
+    const days = new Date(year, month + 1, 0).getDate();
+    for (let day = 1; day <= days; day++) {
+      const date = new Date(year, month, day);
+      if (dayState(date) === "available") return date;
+    }
+    const first = new Date(year, month, 1);
+    return first < today ? today : first;
+  }
+
+  function renderCalendar() {
+    const year = state.view.getFullYear();
+    const month = state.view.getMonth();
+    calTitle.textContent = fmtMonth.format(state.view);
+    calPrev.disabled = year === today.getFullYear() && month === today.getMonth();
+    calNext.disabled = state.view >= new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
+    if (!focusDate || focusDate.getMonth() !== month || focusDate.getFullYear() !== year) {
+      focusDate = state.date && state.date.getMonth() === month && state.date.getFullYear() === year ? state.date : firstFocusable(year, month);
+    }
+    const offset = (new Date(year, month, 1).getDay() + 6) % 7;
+    const days = new Date(year, month + 1, 0).getDate();
+    let html = "";
+    for (let cell = 0; cell < offset + days; ) {
+      html += "<tr>";
+      for (let col = 0; col < 7; col++, cell++) {
+        const dayNumber = cell - offset + 1;
+        if (dayNumber < 1 || dayNumber > days) {
+          html += '<td role="gridcell"></td>';
+          continue;
+        }
+        const date = new Date(year, month, dayNumber);
+        const status = dayState(date);
+        const selected = sameDay(date, state.date);
+        const classes = ["cal-day", `is-${status}`];
+        if (sameDay(date, today)) classes.push("is-today");
+        if (selected) classes.push("is-selected");
+        html += `<td role="gridcell" aria-selected="${selected}"><button type="button" class="${classes.join(" ")}" data-date="${iso(date)}" data-state="${status}" tabindex="${sameDay(date, focusDate) ? 0 : -1}" aria-label="${fmtDayYear.format(date)}${stateLabel[status]}"${status === "available" ? "" : ' aria-disabled="true"'}>${dayNumber}</button></td>`;
+      }
+      html += "</tr>";
+    }
+    calBody.innerHTML = html;
+  }
+
+  function renderSlots() {
+    if (!state.date) {
+      slotsTitle.textContent = "Alege o zi din calendar";
+      slotsSub.textContent = "Îți arătăm orele potrivite pentru durata serviciului ales.";
+      slotGroups.innerHTML = "";
+      return;
+    }
+    const list = slotsFor(state.date);
+    const service = currentService();
+    slotsTitle.textContent = fmtDay.format(state.date);
+    slotsSub.textContent = service
+      ? `Ore de început pentru ${service.name.toLowerCase()}, aprox. ${fmtDuration(duration())}.`
+      : "Alege și serviciul, ca să-ți arătăm orele potrivite duratei lui.";
+    if (state.time !== null && !list.includes(state.time)) {
+      state.time = null;
+      showToast("Ora aleasă nu se mai potrivește. Te rugăm să alegi alta.");
+    }
+    if (!list.length) {
+      slotGroups.innerHTML = `<div class="slots-empty"><svg class="icon" aria-hidden="true"><use href="#i-calendar"></use></svg><p>Nu mai sunt ore potrivite în această zi. Alege altă zi.</p></div>`;
+      return;
+    }
+    const groups = [
+      ["Dimineața", list.filter((minute) => minute < 720)],
+      ["După-amiaza", list.filter((minute) => minute >= 720)],
+    ].filter(([, minutes]) => minutes.length);
+    let index = 0;
+    slotGroups.innerHTML = groups
+      .map(
+        ([title, minutes]) => `<div class="slot-group"><p class="slot-group-title">${title}</p><div class="slot-list">${minutes
+          .map(
+            (minute) =>
+              `<label class="slot" style="--i:${index++}"><input type="radio" name="time" value="${minute}"${minute === state.time ? " checked" : ""} aria-label="ora ${fmtTime(minute)}" /><span>${fmtTime(minute)}</span></label>`,
+          )
+          .join("")}</div></div>`,
+      )
+      .join("");
+  }
+
+  function setSummary(key, value) {
+    const element = $(`[data-sum="${key}"]`);
+    if (!element || element.textContent === value) return;
+    element.textContent = value;
+    element.classList.remove("is-set");
+    void element.offsetWidth;
+    element.classList.add("is-set");
+  }
+  const detailsComplete = () => fields.name.value.trim().length > 1 && fields.phone.value.trim().length > 5 && fields.petName.value.trim().length > 0;
+
+  function updateSummary() {
+    const service = currentService();
+    const length = duration();
+    setSummary("pet", state.pet === "cat" ? "Pisică" : `Câine, ${SIZES[state.size]}`);
+    setSummary("service", service ? service.name : "–");
+    setSummary("duration", length ? `aprox. ${fmtDuration(length)}` : "–");
+    setSummary("date", state.date ? capitalize(fmtDay.format(state.date)) : "–");
+    setSummary("time", state.time !== null ? `${fmtTime(state.time)}${length ? ` – ${fmtTime(state.time + length)}` : ""}` : "–");
+    const done = {
+      "step-pet": true,
+      "step-service": Boolean(service),
+      "step-date": Boolean(state.date && state.time !== null),
+      "step-details": detailsComplete(),
+    };
+    Object.entries(done).forEach(([id, ok]) => $(`#${id}`).classList.toggle("is-done", ok));
+    progressBar.style.setProperty("--p", Object.values(done).filter(Boolean).length / 4);
+    const missing = [];
+    if (!service) missing.push("serviciul");
+    if (!state.date) missing.push("ziua");
+    if (state.time === null) missing.push("ora");
+    hint.textContent = missing.length
+      ? `Mai ai de ales: ${joinRo(missing)}.`
+      : done["step-details"]
+        ? "Totul e pregătit. Trimite cererea!"
+        : "Mai completează numele tău, telefonul și numele blănosului.";
+  }
+
+  function refresh() {
+    renderCalendar();
+    renderSlots();
+    updateSummary();
+  }
+
+  function selectDate(date) {
+    state.date = date;
+    focusDate = date;
+    calNote.textContent = defaultNote;
+    refresh();
+    calBody.querySelector(`[data-date="${iso(date)}"]`)?.focus({ preventScroll: true });
+    if (window.innerWidth <= 860) {
+      const box = slotsBox.getBoundingClientRect();
+      if (box.top > window.innerHeight * 0.75 || box.bottom < 0) {
+        slotsBox.scrollIntoView({ behavior: reducedMotion.matches ? "auto" : "smooth", block: "center" });
+      }
+    }
+  }
+
+  calBody.addEventListener("click", (event) => {
+    const button = event.target.closest(".cal-day");
+    if (!button) return;
+    const status = button.dataset.state;
+    if (status !== "available") {
+      calNote.textContent = stateNote[status];
+      return;
+    }
+    selectDate(parseIso(button.dataset.date));
+  });
+  calBody.addEventListener("keydown", (event) => {
+    const button = event.target.closest(".cal-day");
+    if (!button) return;
+    const current = parseIso(button.dataset.date);
+    const weekday = (current.getDay() + 6) % 7;
+    const moves = {
+      ArrowLeft: () => addDays(current, -1),
+      ArrowRight: () => addDays(current, 1),
+      ArrowUp: () => addDays(current, -7),
+      ArrowDown: () => addDays(current, 7),
+      Home: () => addDays(current, -weekday),
+      End: () => addDays(current, 6 - weekday),
+      PageUp: () => addMonths(current, -1),
+      PageDown: () => addMonths(current, 1),
+    };
+    if (!moves[event.key]) return;
+    event.preventDefault();
+    let next = moves[event.key]();
+    const minNav = new Date(today.getFullYear(), today.getMonth(), 1);
+    const maxNav = new Date(maxDate.getFullYear(), maxDate.getMonth() + 1, 0);
+    if (next < minNav) next = minNav;
+    if (next > maxNav) next = maxNav;
+    focusDate = next;
+    if (next.getMonth() !== state.view.getMonth() || next.getFullYear() !== state.view.getFullYear()) {
+      state.view = new Date(next.getFullYear(), next.getMonth(), 1);
+    }
+    renderCalendar();
+    calBody.querySelector(`[data-date="${iso(next)}"]`)?.focus();
+  });
+  calPrev.addEventListener("click", () => {
+    state.view = new Date(state.view.getFullYear(), state.view.getMonth() - 1, 1);
+    focusDate = null;
+    renderCalendar();
+  });
+  calNext.addEventListener("click", () => {
+    state.view = new Date(state.view.getFullYear(), state.view.getMonth() + 1, 1);
+    focusDate = null;
+    renderCalendar();
+  });
+
+  booker.addEventListener("change", (event) => {
+    const { name, value } = event.target;
+    if (name === "pet") {
+      state.pet = value;
+      sizeGroup.hidden = value === "cat";
+      renderServices();
+    } else if (name === "size") {
+      state.size = value;
+      renderServices();
+    } else if (name === "service") {
+      state.service = value;
+    } else if (name === "time") {
+      state.time = Number(value);
+      updateSummary();
+      return;
+    } else {
+      return;
+    }
+    refresh();
+  });
+  booker.addEventListener("input", (event) => {
+    if (event.target.matches(".field input")) {
+      event.target.removeAttribute("aria-invalid");
+      const error = $(`#${event.target.getAttribute("aria-describedby")}`);
+      if (error) error.textContent = "";
+    }
+    updateSummary();
+  });
+
+  function setError(input, message) {
+    input.setAttribute("aria-invalid", "true");
+    $(`#${input.getAttribute("aria-describedby")}`).textContent = message;
+  }
+  function validateFields() {
+    let first = null;
+    const name = fields.name.value.trim();
+    const phone = fields.phone.value.replace(/[\s.\-()/]/g, "");
+    const petName = fields.petName.value.trim();
+    if (name.length < 2) {
+      setError(fields.name, "Spune-ne cum te numești.");
+      first ||= fields.name;
+    }
+    if (!/^(?:(?:\+|00)?40|0)[2-37]\d{8}$/.test(phone) && !/^\+\d{8,15}$/.test(phone)) {
+      setError(fields.phone, "Introdu un număr valid, de exemplu 0722 123 456.");
+      first ||= fields.phone;
+    }
+    if (!petName) {
+      setError(fields.petName, "Cum îl cheamă pe blănos?");
+      first ||= fields.petName;
+    }
+    return first;
+  }
+  function flagStep(id, message) {
+    const step = $(`#${id}`);
+    step.classList.remove("attention");
+    void step.offsetWidth;
+    step.classList.add("attention");
+    setTimeout(() => step.classList.remove("attention"), 1400);
+    step.scrollIntoView({ behavior: reducedMotion.matches ? "auto" : "smooth", block: "start" });
+    if (message) {
+      hint.textContent = message;
+      showToast(message);
+    }
+  }
+
+  function collect() {
+    const service = currentService();
+    const length = duration();
+    const breed = fields.breed.value.trim();
+    const notes = fields.notes.value.trim();
+    const petLabel = state.pet === "cat" ? "pisică" : `câine, ${SIZES[state.size]}`;
+    const data = {
+      service: service.id,
+      serviceName: service.name,
+      pet: state.pet,
+      size: state.pet === "cat" ? null : state.size,
+      petLabel,
+      petName: fields.petName.value.trim(),
+      breed,
+      date: iso(state.date),
+      dateLabel: fmtDayYear.format(state.date),
+      time: state.time,
+      timeLabel: fmtTime(state.time),
+      duration: length,
+      name: fields.name.value.trim(),
+      phone: fields.phone.value.trim(),
+      notes,
+    };
+    data.message = [
+      `Bună ziua! Aș dori o programare la ${SALON.name}.`,
+      "",
+      `Serviciu: ${data.serviceName}`,
+      `Blănos: ${data.petName} (${petLabel}${breed ? `, ${breed}` : ""})`,
+      `Ziua: ${data.dateLabel}`,
+      `Ora: ${data.timeLabel} (durată estimată: aprox. ${fmtDuration(length)})`,
+      `Nume: ${data.name}`,
+      `Telefon: ${data.phone}`,
+      notes ? `Observații: ${notes}` : null,
+      "",
+      "Mulțumesc!",
+    ]
+      .filter((line) => line !== null)
+      .join("\n");
+    return data;
+  }
+
+  function downloadIcs(data) {
+    const start = parseIso(data.date);
+    start.setHours(0, data.time, 0, 0);
+    const end = new Date(start.getTime() + data.duration * 60000);
+    const local = (d) => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+    const now = new Date();
+    const stamp = `${now.getUTCFullYear()}${pad(now.getUTCMonth() + 1)}${pad(now.getUTCDate())}T${pad(now.getUTCHours())}${pad(now.getUTCMinutes())}${pad(now.getUTCSeconds())}Z`;
+    const esc = (text) => String(text).replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
+    const lines = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//Arr Grooming Salon//Programari//RO",
+      "CALSCALE:GREGORIAN",
+      "METHOD:PUBLISH",
+      "BEGIN:VEVENT",
+      `UID:${Date.now()}-${Math.random().toString(36).slice(2)}@arrgrooming`,
+      `DTSTAMP:${stamp}`,
+      `DTSTART:${local(start)}`,
+      `DTEND:${local(end)}`,
+      `SUMMARY:${esc(`Arr Grooming: ${data.serviceName} (${data.petName})`)}`,
+      `LOCATION:${esc(SALON.address)}`,
+      `DESCRIPTION:${esc(`Cerere de programare trimisă salonului. Se confirmă telefonic: ${SALON.phoneDisplay}.`)}`,
+      "STATUS:TENTATIVE",
+      "BEGIN:VALARM",
+      "TRIGGER:-PT2H",
+      "ACTION:DISPLAY",
+      "DESCRIPTION:Programare la Arr Grooming",
+      "END:VALARM",
+      "END:VEVENT",
+      "END:VCALENDAR",
+    ];
+    const blob = new Blob([lines.join("\r\n")], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "programare-arr-grooming.ics";
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }
+
+  let lastRequest = null;
+  const whatsappLink = $("#bd-whatsapp");
+  const smsLink = $("#bd-sms");
+  const dialogTitle = $("#bd-title");
+  const dialogDesc = $("#bd-desc");
+  const dialogSummary = $("#bd-summary");
+
+  function openDialog(data, delivered) {
+    lastRequest = data;
+    const text = encodeURIComponent(data.message);
+    whatsappLink.href = `https://wa.me/${SALON.whatsapp}?text=${text}`;
+    smsLink.href = `sms:${SALON.phone}?&body=${text}`;
+    const rows = [
+      ["Serviciu", data.serviceName],
+      ["Blănos", `${data.petName} · ${data.petLabel}`],
+      ["Ziua", capitalize(data.dateLabel)],
+      ["Ora", `${data.timeLabel} · aprox. ${fmtDuration(data.duration)}`],
+    ];
+    dialogSummary.innerHTML = rows.map(([key, value]) => `<div><dt>${key}</dt><dd>${escapeHtml(value)}</dd></div>`).join("");
+    if (delivered) {
+      dialogTitle.innerHTML = "Cererea a ajuns <em>la noi.</em>";
+      dialogDesc.textContent = "Te sunăm în curând să confirmăm ora și prețul. Dacă vrei, ne poți scrie și direct.";
+    } else {
+      dialogTitle.innerHTML = "Cererea ta e <em>gata de trimis.</em>";
+      dialogDesc.textContent = "Alege cum ne trimiți detaliile. Programarea devine sigură după ce te sunăm să o confirmăm.";
+    }
+    if (typeof dialog.showModal === "function") {
+      dialog.showModal();
+      requestScrollUpdate();
+    } else {
+      window.open(whatsappLink.href, "_blank", "noopener");
+    }
+  }
+
+  booker.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!currentService()) return flagStep("step-service", "Alege serviciul dorit.");
+    if (!state.date) return flagStep("step-date", "Alege ziua programării.");
+    if (state.time === null) return flagStep("step-date", "Alege ora programării.");
+    const invalid = validateFields();
+    if (invalid) {
+      flagStep("step-details", "Verifică datele de contact.");
+      setTimeout(() => invalid.focus({ preventScroll: true }), 350);
+      return;
+    }
+    const data = collect();
+    let delivered = false;
+    if (SALON.bookingEndpoint) {
+      const submit = $("button[type=submit]", booker);
+      submit.disabled = true;
+      try {
+        const response = await fetch(SALON.bookingEndpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify(data),
+        });
+        delivered = response.ok;
+      } catch {}
+      submit.disabled = false;
+    }
+    openDialog(data, delivered);
+  });
+
+  if (dialog) {
+    $(".dialog-close", dialog).addEventListener("click", () => dialog.close());
+    dialog.addEventListener("click", (event) => {
+      if (event.target !== dialog) return;
+      const box = dialog.getBoundingClientRect();
+      const outside = event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom;
+      if (outside) dialog.close();
+    });
+    dialog.addEventListener("close", requestScrollUpdate);
+    $("#bd-copy").addEventListener("click", async () => {
+      if (!lastRequest) return;
+      showToast((await copyText(lastRequest.message)) ? "Detaliile au fost copiate." : "Nu am putut copia automat.");
+    });
+    $("#bd-ics").addEventListener("click", () => {
+      if (!lastRequest) return;
+      downloadIcs(lastRequest);
+      showToast("Evenimentul a fost descărcat pentru calendarul tău.");
+    });
+  }
+
+  // "Alege acest serviciu" din lista de servicii
+  $$("[data-pick-service]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const service = SERVICES.find((item) => item.id === button.dataset.pickService);
+      if (!service) return;
+      if (!service.pets.includes(state.pet)) {
+        state.pet = service.pets[0];
+        $(`input[name="pet"][value="${state.pet}"]`, booker).checked = true;
+        sizeGroup.hidden = state.pet === "cat";
+      }
+      state.service = service.id;
+      renderServices();
+      refresh();
+      $("#step-pet").scrollIntoView({ behavior: reducedMotion.matches ? "auto" : "smooth", block: "start" });
+      showToast(`Ai ales: ${service.name}. Acum alege ziua și ora.`);
+    });
+  });
+
+  renderServices();
+  refresh();
 }
