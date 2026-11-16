@@ -4001,6 +4001,21 @@ details[open] > summary .plus::after {
     font-size: 0.72rem;
   }
 }
+@container (max-width: 330px) {
+  .hv-chip-pets {
+    display: none;
+  }
+  .hv-chip-status {
+    top: 12px;
+    left: 12px;
+    right: auto;
+    bottom: auto;
+    padding: 6px 10px;
+  }
+  .hv-badge {
+    display: none;
+  }
+}
 
 @media (hover: none) {
   .marquee:hover .marquee-track {
