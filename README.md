@@ -11,7 +11,7 @@ Site static, responsive, în limba română, pentru **Arr Grooming Salon**, salo
 
 Toate căile sunt relative, deci merge atât pe `utilizator.github.io`, cât și pe `utilizator.github.io/repository/`.
 
-După ce știi adresa finală, înlocuiește în `index.html` valoarea `og:image` cu adresa completă (de exemplu `https://domeniu.ro/assets/og-image.jpg`), ca imaginea să apară corect când linkul e distribuit pe Facebook sau WhatsApp.
+Site-ul este publicat la https://tibidinu1031.github.io/arrgrooming/. Dacă se mută pe un domeniu propriu, actualizează în `index.html` adresele din `og:url`, `og:image` și `canonical`, ca imaginea să apară corect când linkul e distribuit pe Facebook sau WhatsApp.
 
 ## Previzualizare locală
 
