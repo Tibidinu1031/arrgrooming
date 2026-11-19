@@ -11,4 +11,5 @@ for (const file of [
   await cp(file, `dist/${file}`);
 }
 await cp("assets", "dist/assets", { recursive: true });
+await cp("admin", "dist/admin", { recursive: true });
 console.log("Static export ready in dist/.");

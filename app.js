@@ -1,36 +1,76 @@
 "use strict";
 
 /* =========================================================================
-   Datele salonului. Modifică aici programul, serviciile și duratele.
+   Datele salonului vin din blocul JSON "site-content" din index.html,
+   pe care îl modifică panoul de administrare (/admin). Nu e nevoie de cod.
    ========================================================================= */
-const SALON = {
-  name: "Arr Grooming Salon",
-  phone: "+40744134819",
-  phoneDisplay: "0744 134 819",
-  whatsapp: "40744134819",
-  address: "Str. 1 Decembrie 1918 nr. 1, Bl. S5C, parter, Galați",
-  timeZone: "Europe/Bucharest",
-  // Index după Date.getDay(): 0 = duminică ... 6 = sâmbătă. [deschidere, închidere] în ore.
-  hours: { 0: null, 1: [9, 18], 2: [9, 18], 3: [9, 18], 4: [9, 18], 5: [9, 18], 6: [9, 14] },
-  slotStep: 30, // minute între orele de început propuse
-  leadMinutes: 60, // cu cât timp înainte se poate cere o programare în ziua curentă
-  horizonDays: 60, // câte zile în avans se pot trimite cereri
-  // Opțional: un URL (de ex. Formspree sau Google Apps Script) care primește cererea ca JSON.
-  // Gol = cererea se trimite de pe telefonul clientului, prin WhatsApp sau SMS.
-  bookingEndpoint: "",
+const CONTENT = (() => {
+  try {
+    return JSON.parse(document.getElementById("site-content").textContent);
+  } catch {
+    return null;
+  }
+})();
+
+const toMinutes = (value) => {
+  const [h, m] = String(value || "0:0").split(":").map(Number);
+  return (h || 0) * 60 + (m || 0);
 };
+function phoneFrom(display) {
+  let digits = String(display || "").replace(/[^\d+]/g, "");
+  if (digits.startsWith("+")) digits = digits.slice(1);
+  else if (digits.startsWith("00")) digits = digits.slice(2);
+  else if (digits.startsWith("0")) digits = `40${digits.slice(1)}`;
+  digits = digits.replace(/\D/g, "");
+  return { tel: `+${digits}`, wa: digits };
+}
+
+const SALON = (() => {
+  const contact = CONTENT?.contact || {};
+  const display = contact.phoneDisplay || "0744 134 819";
+  const phone = phoneFrom(display);
+  // Index după Date.getDay(): 0 = duminică ... 6 = sâmbătă. [deschidere, închidere] în minute.
+  const hours = { 0: null, 1: [540, 1080], 2: [540, 1080], 3: [540, 1080], 4: [540, 1080], 5: [540, 1080], 6: [540, 840] };
+  if (Array.isArray(CONTENT?.hours)) {
+    CONTENT.hours.forEach((item) => {
+      hours[item.day] = item.closed ? null : [toMinutes(item.open), toMinutes(item.close)];
+    });
+  }
+  const booking = CONTENT?.booking || {};
+  return {
+    name: CONTENT?.siteName || "Arr Grooming Salon",
+    phone: phone.tel,
+    phoneDisplay: display,
+    whatsapp: phone.wa,
+    address: [contact.street, contact.building, contact.city].filter(Boolean).join(", ") || "Str. 1 Decembrie 1918 nr. 1, Bl. S5C, parter, Galați",
+    timeZone: "Europe/Bucharest",
+    hours,
+    closedDates: new Map((CONTENT?.closedDates || []).filter((item) => item && item.date).map((item) => [item.date, item.note || ""])),
+    slotStep: Math.max(10, Number(booking.slotStep) || 30),
+    leadMinutes: Math.max(0, Number(booking.leadMinutes) || 0),
+    horizonDays: Math.max(7, Number(booking.horizonDays) || 60),
+    bookingEndpoint: booking.endpoint || "",
+  };
+})();
 
 const SIZES = { small: "talie mică", medium: "talie medie", large: "talie mare" };
 
 // Durate estimative, în minute (confirmate telefonic la programare).
-const SERVICES = [
-  { id: "complet", name: "Toaletaj complet", icon: "i-sparkle", pets: ["dog"], desc: "Baie, uscare, tuns, unghii și urechi", duration: { small: 90, medium: 120, large: 150 } },
-  { id: "tuns", name: "Tuns & styling", icon: "i-scissors", pets: ["dog"], desc: "Pe rasă, Teddy, de vară sau igienic", duration: { small: 75, medium: 90, large: 120 } },
-  { id: "baie", name: "Baie & periaj", icon: "i-bath", pets: ["dog", "cat"], desc: "Spălat, uscat, periat, descâlcire ușoară", duration: { small: 60, medium: 75, large: 90, cat: 60 } },
-  { id: "pisici", name: "Grooming pisici", icon: "i-cat", pets: ["cat"], desc: "Baie, periaj, descâlcire, tuns la nevoie", duration: { cat: 90 } },
-  { id: "unghii", name: "Unghii & urechi", icon: "i-paw", pets: ["dog", "cat"], desc: "Tăiat unghii și curățat urechi", duration: { small: 30, medium: 30, large: 30, cat: 30 } },
-  { id: "vopsit", name: "Vopsit creativ", icon: "i-palette", pets: ["dog"], desc: "Accente de culoare pe blăniță", duration: { small: 60, medium: 90, large: 120 } },
-];
+const SERVICES = (
+  CONTENT?.services || [
+    { id: "complet", name: "Toaletaj complet", icon: "i-sparkle", pets: ["dog"], short: "Baie, uscare, tuns, unghii și urechi", duration: { small: 90, medium: 120, large: 150 }, bookable: true },
+    { id: "baie", name: "Baie & periaj", icon: "i-bath", pets: ["dog", "cat"], short: "Spălat, uscat, periat, descâlcire ușoară", duration: { small: 60, medium: 75, large: 90, cat: 60 }, bookable: true },
+  ]
+)
+  .filter((service) => service.visible !== false && service.bookable !== false && Array.isArray(service.pets) && service.pets.length)
+  .map((service) => ({
+    id: service.id,
+    name: service.name,
+    icon: service.icon || "i-sparkle",
+    pets: service.pets,
+    desc: service.short || "",
+    duration: service.duration || {},
+  }));
 
 /* ========================================================================= */
 
@@ -205,29 +245,37 @@ function salonNow() {
     }).formatToParts(new Date());
     const get = (type) => parts.find((part) => part.type === type).value;
     const day = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(get("weekday"));
-    return { day, minutes: Number(get("hour")) * 60 + Number(get("minute")) };
+    const date = new Intl.DateTimeFormat("en-CA", { timeZone: SALON.timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+    return { day, date, minutes: Number(get("hour")) * 60 + Number(get("minute")) };
   } catch {
     const now = new Date();
-    return { day: now.getDay(), minutes: now.getHours() * 60 + now.getMinutes() };
+    const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    return { day: now.getDay(), date, minutes: now.getHours() * 60 + now.getMinutes() };
   }
 }
+function isoShift(isoDate, days) {
+  const [y, m, d] = isoDate.split("-").map(Number);
+  const shifted = new Date(y, m - 1, d + days);
+  return { iso: `${shifted.getFullYear()}-${pad(shifted.getMonth() + 1)}-${pad(shifted.getDate())}`, day: shifted.getDay() };
+}
+const hoursOn = (isoDate, day) => (SALON.closedDates.has(isoDate) ? null : SALON.hours[day]);
 function openingStatus() {
-  const { day, minutes } = salonNow();
-  const today = SALON.hours[day];
-  if (today && minutes >= today[0] * 60 && minutes < today[1] * 60) {
-    const until = fmtTime(today[1] * 60);
+  const { day, date, minutes } = salonNow();
+  const today = hoursOn(date, day);
+  if (today && minutes >= today[0] && minutes < today[1]) {
+    const until = fmtTime(today[1]);
     return { open: true, day, long: `Deschis acum · până la ${until}`, short: `Deschis acum · până la ${until}` };
   }
-  if (today && minutes < today[0] * 60) {
-    const at = fmtTime(today[0] * 60);
+  if (today && minutes < today[0]) {
+    const at = fmtTime(today[0]);
     return { open: false, day, long: `Închis acum · deschidem azi la ${at}`, short: `Deschidem azi la ${at}` };
   }
-  for (let offset = 1; offset <= 7; offset++) {
-    const next = (day + offset) % 7;
-    const hours = SALON.hours[next];
+  for (let offset = 1; offset <= 30; offset++) {
+    const next = isoShift(date, offset);
+    const hours = hoursOn(next.iso, next.day);
     if (hours) {
-      const when = offset === 1 ? "mâine" : DAY_NAMES[next];
-      const at = fmtTime(hours[0] * 60);
+      const when = offset === 1 ? "mâine" : offset < 7 ? DAY_NAMES[next.day] : `pe ${next.iso.split("-").reverse().slice(0, 2).join(".")}`;
+      const at = fmtTime(hours[0]);
       return { open: false, day, long: `Închis acum · deschidem ${when} la ${at}`, short: `Deschidem ${when} la ${at}` };
     }
   }
@@ -244,6 +292,32 @@ function renderStatus() {
 }
 renderStatus();
 setInterval(renderStatus, 60000);
+
+// Zilele libere viitoare (din panoul de administrare), afișate sub program.
+(function renderClosedDays() {
+  const box = $("#closed-days");
+  if (!box || !SALON.closedDates.size) return;
+  const { date } = salonNow();
+  const limit = isoShift(date, 120).iso;
+  const upcoming = [...SALON.closedDates.entries()].filter(([day]) => day >= date && day <= limit).sort(([a], [b]) => a.localeCompare(b));
+  if (!upcoming.length) return;
+  const format = new Intl.DateTimeFormat("ro-RO", { weekday: "long", day: "numeric", month: "long" });
+  const title = document.createElement("p");
+  title.className = "closed-days-title";
+  title.textContent = "Zile în care salonul este închis";
+  const list = document.createElement("ul");
+  upcoming.forEach(([day, note]) => {
+    const [y, m, d] = day.split("-").map(Number);
+    const item = document.createElement("li");
+    const when = document.createElement("strong");
+    when.textContent = capitalize(format.format(new Date(y, m - 1, d)));
+    item.append(when);
+    if (note) item.append(document.createTextNode(` · ${note}`));
+    list.append(item);
+  });
+  box.append(title, list);
+  box.hidden = false;
+})();
 
 /* ---------- Reveal on scroll & counters ---------- */
 function animateCount(element) {
@@ -462,22 +536,28 @@ function initBooking() {
     breed: $("#f-breed"),
     notes: $("#f-notes"),
   };
-  const defaultNote = `Duminica salonul este închis. Poți trimite cereri cu până la ${SALON.horizonDays} de zile înainte.`;
+  const DAY_ARTICLED = ["duminica", "lunea", "marțea", "miercurea", "joia", "vinerea", "sâmbăta"];
+  const closedWeekdays = [1, 2, 3, 4, 5, 6, 0].filter((day) => !SALON.hours[day]).map((day) => DAY_ARTICLED[day]);
+  const closedText = closedWeekdays.length
+    ? `${capitalize(joinRo(closedWeekdays))} salonul este închis.`
+    : "Salonul este deschis în fiecare zi.";
+  const defaultNote = `${closedText} Poți trimite cereri cu până la ${SALON.horizonDays} de zile înainte.`;
   calNote.textContent = defaultNote;
 
   const currentService = () => SERVICES.find((service) => service.id === state.service) || null;
-  const durationOf = (service) => (state.pet === "cat" ? service.duration.cat : service.duration[state.size]);
+  const durationOf = (service) => Number(state.pet === "cat" ? service.duration.cat : service.duration[state.size]) || 60;
   const duration = () => {
     const service = currentService();
     return service ? durationOf(service) : null;
   };
+  const holidayNote = (date) => SALON.closedDates.get(iso(date));
 
   function slotsFor(date) {
     const hours = SALON.hours[date.getDay()];
-    if (!hours) return [];
+    if (!hours || SALON.closedDates.has(iso(date))) return [];
     const length = duration() || SALON.slotStep;
-    const open = hours[0] * 60;
-    const close = hours[1] * 60;
+    const open = hours[0];
+    const close = hours[1];
     const now = new Date();
     const earliest = sameDay(date, now) ? now.getHours() * 60 + now.getMinutes() + SALON.leadMinutes : -1;
     const list = [];
@@ -490,20 +570,27 @@ function initBooking() {
     if (date < today) return "past";
     if (date > maxDate) return "out";
     if (!SALON.hours[date.getDay()]) return "closed";
+    if (SALON.closedDates.has(iso(date))) return "holiday";
     return slotsFor(date).length ? "available" : "full";
   }
   const stateLabel = {
     available: "",
     closed: ", salonul este închis",
+    holiday: ", zi liberă",
     past: ", zi trecută",
     out: ", încă indisponibil",
     full: ", fără ore libere",
   };
   const stateNote = {
-    closed: "Duminica salonul este închis. Alege altă zi.",
+    closed: `${closedText} Alege altă zi.`,
     past: "Ziua aceasta a trecut. Alege o zi din viitor.",
     out: `Poți trimite cereri cu până la ${SALON.horizonDays} de zile înainte.`,
     full: "Pentru această zi nu mai sunt ore potrivite. Alege altă zi.",
+  };
+  const noteFor = (status, date) => {
+    if (status !== "holiday") return stateNote[status];
+    const note = holidayNote(date);
+    return `În această zi salonul este închis${note ? ` (${note})` : ""}. Alege altă zi.`;
   };
 
   function renderServices() {
@@ -512,9 +599,9 @@ function initBooking() {
     serviceBox.innerHTML = list
       .map(
         (service) => `<label class="svc-option">
-          <input type="radio" name="service" value="${service.id}"${service.id === state.service ? " checked" : ""} />
+          <input type="radio" name="service" value="${escapeHtml(service.id)}"${service.id === state.service ? " checked" : ""} />
           <span class="svc-card">
-            <span class="svc-ico" aria-hidden="true"><svg class="icon"><use href="#${service.icon}"></use></svg></span>
+            <span class="svc-ico" aria-hidden="true"><svg class="icon"><use href="#${escapeHtml(service.icon)}"></use></svg></span>
             <span class="svc-name">${escapeHtml(service.name)}</span>
             <span class="svc-desc">${escapeHtml(service.desc)}</span>
             <span class="svc-dur"><svg class="icon" aria-hidden="true"><use href="#i-clock"></use></svg>aprox. ${fmtDuration(durationOf(service))}</span>
@@ -667,7 +754,7 @@ function initBooking() {
     if (!button) return;
     const status = button.dataset.state;
     if (status !== "available") {
-      calNote.textContent = stateNote[status];
+      calNote.textContent = noteFor(status, parseIso(button.dataset.date));
       return;
     }
     selectDate(parseIso(button.dataset.date));

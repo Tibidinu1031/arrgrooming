@@ -101,16 +101,18 @@
 
     <a class="skip-link" href="#main">Sari la conținut</a>
 
+    <div class="announcement" data-cms-announcement hidden></div>
+
     <div class="topbar">
       <div class="topbar-info">
-        <span><svg class="icon" aria-hidden="true"><use href="#i-pin" /></svg>Galați · Str. 1 Decembrie 1918 nr. 1</span>
-        <span class="topbar-hours"><svg class="icon" aria-hidden="true"><use href="#i-clock" /></svg>L–V 09:00–18:00 · S 09:00–14:00</span>
+        <span><svg class="icon" aria-hidden="true"><use href="#i-pin" /></svg><span data-cms="d.topAddress">Galați · Str. 1 Decembrie 1918 nr. 1</span></span>
+        <span class="topbar-hours"><svg class="icon" aria-hidden="true"><use href="#i-clock" /></svg><span data-cms="d.hoursShort">L–V 09:00–18:00 · S 09:00–14:00</span></span>
       </div>
       <div class="topbar-links">
-        <a class="topbar-social" href="https://www.facebook.com/p/Arr-Grooming-Salon-61557057672577/" target="_blank" rel="noopener" aria-label="Arr Grooming pe Facebook"><svg class="icon" aria-hidden="true"><use href="#i-facebook" /></svg></a>
-        <a class="topbar-social" href="https://www.instagram.com/arrgroomingsalon/" target="_blank" rel="noopener" aria-label="Arr Grooming pe Instagram"><svg class="icon" aria-hidden="true"><use href="#i-instagram" /></svg></a>
-        <a class="topbar-social" href="https://www.tiktok.com/@arrgrooming.salon" target="_blank" rel="noopener" aria-label="Arr Grooming pe TikTok"><svg class="icon" aria-hidden="true"><use href="#i-tiktok" /></svg></a>
-        <a class="topbar-phone" href="tel:+40744134819"><svg class="icon" aria-hidden="true"><use href="#i-phone" /></svg>0744 134 819</a>
+        <a class="topbar-social" data-link="facebook" href="https://www.facebook.com/p/Arr-Grooming-Salon-61557057672577/" target="_blank" rel="noopener" aria-label="Arr Grooming pe Facebook"><svg class="icon" aria-hidden="true"><use href="#i-facebook" /></svg></a>
+        <a class="topbar-social" data-link="instagram" href="https://www.instagram.com/arrgroomingsalon/" target="_blank" rel="noopener" aria-label="Arr Grooming pe Instagram"><svg class="icon" aria-hidden="true"><use href="#i-instagram" /></svg></a>
+        <a class="topbar-social" data-link="tiktok" href="https://www.tiktok.com/@arrgrooming.salon" target="_blank" rel="noopener" aria-label="Arr Grooming pe TikTok"><svg class="icon" aria-hidden="true"><use href="#i-tiktok" /></svg></a>
+        <a class="topbar-phone" data-link="tel" href="tel:+40744134819"><svg class="icon" aria-hidden="true"><use href="#i-phone" /></svg><span data-cms="contact.phoneDisplay">0744 134 819</span></a>
       </div>
     </div>
 
@@ -129,11 +131,11 @@
         <a href="#recenzii">Recenzii</a>
         <a href="#contact">Contact</a>
         <div class="nav-extra">
-          <a class="nav-phone" href="tel:+40744134819"><svg class="icon" aria-hidden="true"><use href="#i-phone" /></svg>0744 134 819</a>
+          <a class="nav-phone" data-link="tel" href="tel:+40744134819"><svg class="icon" aria-hidden="true"><use href="#i-phone" /></svg><span data-cms="contact.phoneDisplay">0744 134 819</span></a>
           <div class="nav-socials">
-            <a href="https://www.facebook.com/p/Arr-Grooming-Salon-61557057672577/" target="_blank" rel="noopener" aria-label="Facebook"><svg class="icon" aria-hidden="true"><use href="#i-facebook" /></svg></a>
-            <a href="https://www.instagram.com/arrgroomingsalon/" target="_blank" rel="noopener" aria-label="Instagram"><svg class="icon" aria-hidden="true"><use href="#i-instagram" /></svg></a>
-            <a href="https://www.tiktok.com/@arrgrooming.salon" target="_blank" rel="noopener" aria-label="TikTok"><svg class="icon" aria-hidden="true"><use href="#i-tiktok" /></svg></a>
+            <a data-link="facebook" href="https://www.facebook.com/p/Arr-Grooming-Salon-61557057672577/" target="_blank" rel="noopener" aria-label="Facebook"><svg class="icon" aria-hidden="true"><use href="#i-facebook" /></svg></a>
+            <a data-link="instagram" href="https://www.instagram.com/arrgroomingsalon/" target="_blank" rel="noopener" aria-label="Instagram"><svg class="icon" aria-hidden="true"><use href="#i-instagram" /></svg></a>
+            <a data-link="tiktok" href="https://www.tiktok.com/@arrgrooming.salon" target="_blank" rel="noopener" aria-label="TikTok"><svg class="icon" aria-hidden="true"><use href="#i-tiktok" /></svg></a>
           </div>
         </div>
       </nav>
@@ -154,31 +156,29 @@
           <span class="deco-ring"></span>
         </div>
         <div class="hero-copy">
-          <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>Grooming pentru câini și pisici · Galați</p>
+          <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span><span data-cms="hero.eyebrow">Grooming pentru câini și pisici · Galați</span></p>
           <h1 id="hero-title">
-            Fiecare blăniță<br />merită
-            <em>răsfăț.<svg class="squiggle" viewBox="0 0 300 24" preserveAspectRatio="none" aria-hidden="true"><path d="M4 16C40 6 70 6 100 13s62 9 96 1 66-9 100 0" /></svg></em>
+            <span data-cms="hero.titleLine1">Fiecare blăniță</span><br /><span data-cms="hero.titleLine2">merită</span>
+            <em><span data-cms="hero.titleAccent">răsfăț.</span><svg class="squiggle" viewBox="0 0 300 24" preserveAspectRatio="none" aria-hidden="true"><path d="M4 16C40 6 70 6 100 13s62 9 96 1 66-9 100 0" /></svg></em>
           </h1>
-          <p class="hero-lead">
-            Tuns, spălat și toaletaj complet, făcute cu răbdare și blândețe. Îngrijire profesională la prețuri accesibile, în inima Galațiului.
-          </p>
+          <p class="hero-lead" data-cms="hero.lead">Tuns, spălat și toaletaj complet, făcute cu răbdare și blândețe. Îngrijire profesională la prețuri accesibile, în inima Galațiului.</p>
           <div class="hero-actions">
-            <a class="button magnetic" href="#programari">Programează online <svg class="icon" aria-hidden="true"><use href="#i-calendar" /></svg></a>
-            <a class="hero-phone" href="tel:+40744134819" aria-label="Sună la 0744 134 819">
+            <a class="button magnetic" href="#programari"><span data-cms="hero.button">Programează online</span> <svg class="icon" aria-hidden="true"><use href="#i-calendar" /></svg></a>
+            <a class="hero-phone" data-link="tel" href="tel:+40744134819" data-cms-aria="Sună la {contact.phoneDisplay}" aria-label="Sună la 0744 134 819">
               <span class="hero-phone-icon"><svg class="icon" aria-hidden="true"><use href="#i-phone" /></svg></span>
-              <span class="hero-phone-text"><small>Sau sună-ne</small>0744 134 819</span>
+              <span class="hero-phone-text"><small>Sau sună-ne</small><span data-cms="contact.phoneDisplay">0744 134 819</span></span>
             </a>
           </div>
           <div class="hero-foot">
-            <a class="rating" href="https://maps.google.com/?cid=6354732514170197996" target="_blank" rel="noopener">
+            <a class="rating" data-link="maps" href="https://maps.google.com/?cid=6354732514170197996" target="_blank" rel="noopener">
               <span class="stars" aria-hidden="true"><svg class="icon"><use href="#i-star" /></svg><svg class="icon"><use href="#i-star" /></svg><svg class="icon"><use href="#i-star" /></svg><svg class="icon"><use href="#i-star" /></svg><svg class="icon"><use href="#i-star" /></svg></span>
-              <span><strong>5,0 pe Google</strong><small>notă primită de la clienți</small></span>
+              <span><strong data-cms-tpl="{reviews.score} pe Google">5,0 pe Google</strong><small>notă primită de la clienți</small></span>
             </a>
             <span class="hero-foot-sep" aria-hidden="true"></span>
             <div class="socials" aria-label="Rețele sociale">
-              <a href="https://www.facebook.com/p/Arr-Grooming-Salon-61557057672577/" target="_blank" rel="noopener" aria-label="Facebook"><svg class="icon" aria-hidden="true"><use href="#i-facebook" /></svg></a>
-              <a href="https://www.instagram.com/arrgroomingsalon/" target="_blank" rel="noopener" aria-label="Instagram"><svg class="icon" aria-hidden="true"><use href="#i-instagram" /></svg></a>
-              <a class="is-tiktok" href="https://www.tiktok.com/@arrgrooming.salon" target="_blank" rel="noopener" aria-label="TikTok"><svg class="icon" aria-hidden="true"><use href="#i-tiktok" /></svg></a>
+              <a data-link="facebook" href="https://www.facebook.com/p/Arr-Grooming-Salon-61557057672577/" target="_blank" rel="noopener" aria-label="Facebook"><svg class="icon" aria-hidden="true"><use href="#i-facebook" /></svg></a>
+              <a data-link="instagram" href="https://www.instagram.com/arrgroomingsalon/" target="_blank" rel="noopener" aria-label="Instagram"><svg class="icon" aria-hidden="true"><use href="#i-instagram" /></svg></a>
+              <a class="is-tiktok" data-link="tiktok" href="https://www.tiktok.com/@arrgrooming.salon" target="_blank" rel="noopener" aria-label="TikTok"><svg class="icon" aria-hidden="true"><use href="#i-tiktok" /></svg></a>
             </div>
           </div>
         </div>
@@ -233,7 +233,7 @@
             </svg>
             <span class="hv-badge-center"><svg class="icon"><use href="#i-clipper" /></svg></span>
           </div>
-          <p class="hv-chip hv-chip-pets"><svg class="icon" aria-hidden="true"><use href="#i-paw" /></svg>Câini &amp; pisici</p>
+          <p class="hv-chip hv-chip-pets"><svg class="icon" aria-hidden="true"><use href="#i-paw" /></svg><span data-cms="hero.chip">Câini &amp; pisici</span></p>
           <p class="hv-chip hv-chip-status" data-open-status>
             <span class="pulse" aria-hidden="true"></span><span data-status-text>L–V 09:00–18:00</span>
           </p>
@@ -256,15 +256,16 @@
       </section>
 
       <div class="marquee" aria-label="Serviciile salonului">
-        <div class="marquee-track">
+        <div class="marquee-track" data-cms-list="marquee">
           <ul class="marquee-list">
-            <li>Toaletaj complet</li><li aria-hidden="true" class="m-sep"><svg class="icon"><use href="#i-paw" /></svg></li>
-            <li>Tuns &amp; styling</li><li aria-hidden="true" class="m-sep"><svg class="icon"><use href="#i-sparkle" /></svg></li>
-            <li>Baie &amp; periaj</li><li aria-hidden="true" class="m-sep"><svg class="icon"><use href="#i-paw" /></svg></li>
-            <li>Grooming pisici</li><li aria-hidden="true" class="m-sep"><svg class="icon"><use href="#i-sparkle" /></svg></li>
-            <li>Tunsoare Teddy</li><li aria-hidden="true" class="m-sep"><svg class="icon"><use href="#i-paw" /></svg></li>
-            <li>Unghii &amp; urechi</li><li aria-hidden="true" class="m-sep"><svg class="icon"><use href="#i-sparkle" /></svg></li>
-            <li>Vopsit creativ</li><li aria-hidden="true" class="m-sep"><svg class="icon"><use href="#i-paw" /></svg></li>
+            <li>Toaletaj complet</li><li class="m-sep" aria-hidden="true"><svg class="icon"><use href="#i-paw" /></svg></li>
+            <li>Tuns &amp; styling</li><li class="m-sep" aria-hidden="true"><svg class="icon"><use href="#i-sparkle" /></svg></li>
+            <li>Baie &amp; periaj</li><li class="m-sep" aria-hidden="true"><svg class="icon"><use href="#i-paw" /></svg></li>
+            <li>Grooming pisici</li><li class="m-sep" aria-hidden="true"><svg class="icon"><use href="#i-sparkle" /></svg></li>
+            <li>Tunsoare Teddy</li><li class="m-sep" aria-hidden="true"><svg class="icon"><use href="#i-paw" /></svg></li>
+            <li>Unghii &amp; urechi</li><li class="m-sep" aria-hidden="true"><svg class="icon"><use href="#i-sparkle" /></svg></li>
+            <li>Vopsit creativ</li><li class="m-sep" aria-hidden="true"><svg class="icon"><use href="#i-paw" /></svg></li>
+            <li>Toaletaj complet</li><li class="m-sep" aria-hidden="true"><svg class="icon"><use href="#i-sparkle" /></svg></li>
           </ul>
           <ul class="marquee-list" aria-hidden="true">
             <li>Toaletaj complet</li><li class="m-sep"><svg class="icon"><use href="#i-paw" /></svg></li>
@@ -274,26 +275,23 @@
             <li>Tunsoare Teddy</li><li class="m-sep"><svg class="icon"><use href="#i-paw" /></svg></li>
             <li>Unghii &amp; urechi</li><li class="m-sep"><svg class="icon"><use href="#i-sparkle" /></svg></li>
             <li>Vopsit creativ</li><li class="m-sep"><svg class="icon"><use href="#i-paw" /></svg></li>
+            <li>Toaletaj complet</li><li class="m-sep"><svg class="icon"><use href="#i-sparkle" /></svg></li>
           </ul>
         </div>
       </div>
 
       <section class="about section-wrap" id="despre" aria-labelledby="about-title">
-        <div class="section-label"><span>01 / Despre noi</span><span>Lângă Salonul Ciufulix</span></div>
+        <div class="section-label"><span>01 / Despre noi</span><span data-cms="contact.landmark">Lângă Salonul Ciufulix</span></div>
         <div class="about-grid">
           <div class="about-copy" data-reveal>
-            <h2 id="about-title">Răsfăț pentru blănoși.<br /><span class="muted">Cu răbdare, nu cu grabă.</span></h2>
-            <p class="lead">
-              Pentru noi, o programare nu e doar un tuns. E o baie caldă, o blăniță pieptănată cu grijă și un blănos care pleacă acasă mai vesel decât a venit.
-            </p>
-            <p>
-              Arr Grooming Salon este salonul de grooming din Galați unde câinii și pisicile sunt primiți ca niște oaspeți de onoare. Lucrăm în ritmul fiecăruia, îți explicăm ce facem și alegem împreună look-ul potrivit, la prețuri accesibile.
-            </p>
+            <h2 id="about-title"><span data-cms="about.title">Răsfăț pentru blănoși.</span><br /><span class="muted" data-cms="about.titleMuted">Cu răbdare, nu cu grabă.</span></h2>
+            <p class="lead" data-cms="about.lead">Pentru noi, o programare nu e doar un tuns. E o baie caldă, o blăniță pieptănată cu grijă și un blănos care pleacă acasă mai vesel decât a venit.</p>
+            <p data-cms="about.text">Arr Grooming Salon este salonul de grooming din Galați unde câinii și pisicile sunt primiți ca niște oaspeți de onoare. Lucrăm în ritmul fiecăruia, îți explicăm ce facem și alegem împreună look-ul potrivit, la prețuri accesibile.</p>
             <div class="groomer-card">
-              <span class="groomer-avatar" aria-hidden="true">D</span>
+              <span class="groomer-avatar" aria-hidden="true" data-cms="d.groomerInitial">D</span>
               <span>
-                <strong>Daniel</strong>
-                <small>Groomer · te ajută să alegi tunsoarea potrivită pentru rasa și blănița lui</small>
+                <strong data-cms="about.groomerName">Daniel</strong>
+                <small data-cms="about.groomerRole">Groomer · te ajută să alegi tunsoarea potrivită pentru rasa și blănița lui</small>
               </span>
             </div>
             <a class="text-link" href="#servicii">Vezi ce facem pentru ei <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg></a>
@@ -309,7 +307,7 @@
               <img class="art-logo" src="assets/logo-mark.svg" alt="" width="180" height="180" />
               <span class="art-caption">Fiecare blăniță<br />merită răsfăț.</span>
             </div>
-            <div class="stats">
+            <div class="stats" data-cms-list="stats">
               <div class="stat" data-reveal>
                 <strong><span data-count="5" data-decimals="1">5,0</span><svg class="icon stat-star" aria-hidden="true"><use href="#i-star" /></svg></strong>
                 <span>nota primită de la clienți pe Google</span>
@@ -331,10 +329,10 @@
         <div class="services-deco" aria-hidden="true"><span class="sd-dots"></span><span class="sd-line"></span></div>
         <div class="section-label light"><span>02 / Servicii</span><span>Prețuri accesibile</span></div>
         <div class="section-heading" data-reveal>
-          <h2 id="services-title">Tot ce-i trebuie unei blănițe.<br /><em>Într-un singur loc.</em></h2>
-          <p>Prețul și durata depind de talie, rasă și starea blăniței. Ți le spunem înainte, ca să nu ai surprize.</p>
+          <h2 id="services-title"><span data-cms="servicesSection.title">Tot ce-i trebuie unei blănițe.</span><br /><em data-cms="servicesSection.accent">Într-un singur loc.</em></h2>
+          <p data-cms="servicesSection.text">Prețul și durata depind de talie, rasă și starea blăniței. Ți le spunem înainte, ca să nu ai surprize.</p>
         </div>
-        <div class="service-list">
+        <div class="service-list" data-cms-list="services">
           <details class="service" name="services" open>
             <summary>
               <span class="service-num">01</span>
@@ -419,10 +417,10 @@
       <section class="process section-wrap" id="proces" aria-labelledby="process-title">
         <div class="section-label"><span>03 / Cum funcționează</span><span>4 pași simpli</span></div>
         <div class="section-heading" data-reveal>
-          <h2 id="process-title">De la programare<br /><em>la blăniță pufoasă.</em></h2>
+          <h2 id="process-title"><span data-cms="process.title">De la programare</span><br /><em data-cms="process.accent">la blăniță pufoasă.</em></h2>
           <a class="text-link" href="#programari">Începe programarea <svg class="icon" aria-hidden="true"><use href="#i-down" /></svg></a>
         </div>
-        <ol class="steps">
+        <ol class="steps" data-cms-list="steps">
           <li class="step" data-reveal>
             <span class="step-icon" aria-hidden="true"><svg class="icon"><use href="#i-paw" /></svg></span>
             <span class="step-num">Pasul 1</span>
@@ -454,8 +452,8 @@
         <div class="booking-deco" aria-hidden="true"></div>
         <div class="section-label"><span>04 / Programări online</span><span>Confirmăm telefonic</span></div>
         <div class="section-heading" data-reveal>
-          <h2 id="booking-title">Alege ziua și ora.<br /><em>Noi pregătim prosopul.</em></h2>
-          <p>Completezi în mai puțin de un minut. Cererea ajunge direct la salon, iar noi te sunăm să confirmăm.</p>
+          <h2 id="booking-title"><span data-cms="booking.title">Alege ziua și ora.</span><br /><em data-cms="booking.accent">Noi pregătim prosopul.</em></h2>
+          <p data-cms="booking.text">Completezi în mai puțin de un minut. Cererea ajunge direct la salon, iar noi te sunăm să confirmăm.</p>
         </div>
 
         <form class="booker" id="booker" novalidate>
@@ -565,7 +563,7 @@
               <p class="summary-hint" id="summary-hint" aria-live="polite">Mai ai de ales: serviciul, ziua și ora.</p>
               <button type="submit" class="button full">Trimite cererea <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg></button>
               <p class="summary-note">Prețul depinde de talie și blăniță și ți-l spunem la confirmare. Datele nu sunt salvate pe site.</p>
-              <a class="summary-call" href="tel:+40744134819"><svg class="icon" aria-hidden="true"><use href="#i-phone" /></svg><span>Preferi la telefon? <strong>0744 134 819</strong></span></a>
+              <a class="summary-call" data-link="tel" href="tel:+40744134819"><svg class="icon" aria-hidden="true"><use href="#i-phone" /></svg><span>Preferi la telefon? <strong data-cms="contact.phoneDisplay">0744 134 819</strong></span></a>
             </div>
           </aside>
         </form>
@@ -573,19 +571,19 @@
 
       <section class="social section-wrap" id="tiktok" aria-labelledby="social-title">
         <div class="social-deco" aria-hidden="true"><span></span><span></span></div>
-        <div class="section-label light"><span>05 / Din salon</span><span>@arrgrooming.salon</span></div>
+        <div class="section-label light"><span>05 / Din salon</span><span data-cms="contact.tiktokHandle">@arrgrooming.salon</span></div>
         <div class="section-heading" data-reveal>
           <div>
-            <h2 id="social-title">Transformări reale,<br /><em>pe TikTok.</em></h2>
-            <p>Blănoși veseli, tunsori noi și momente din salon. Urmărește-ne ca să vezi ce putem face și pentru al tău.</p>
+            <h2 id="social-title"><span data-cms="social.title">Transformări reale,</span><br /><em data-cms="social.accent">pe TikTok.</em></h2>
+            <p data-cms="social.text">Blănoși veseli, tunsori noi și momente din salon. Urmărește-ne ca să vezi ce putem face și pentru al tău.</p>
           </div>
-          <a class="tiktok-big magnetic" href="https://www.tiktok.com/@arrgrooming.salon" target="_blank" rel="noopener">
+          <a class="tiktok-big magnetic" data-link="tiktok" href="https://www.tiktok.com/@arrgrooming.salon" target="_blank" rel="noopener">
             <span class="tiktok-big-icon"><svg class="icon" aria-hidden="true"><use href="#i-tiktok" /></svg></span>
-            <span><small>Urmărește-ne pe TikTok</small><strong>@arrgrooming.salon</strong></span>
+            <span><small>Urmărește-ne pe TikTok</small><strong data-cms="contact.tiktokHandle">@arrgrooming.salon</strong></span>
             <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg>
           </a>
         </div>
-        <div class="reels">
+        <div class="reels" data-cms-list="reels">
           <a class="reel tilt" data-reveal href="https://www.tiktok.com/@arrgrooming.salon/video/7370019756767857953" target="_blank" rel="noopener" style="--a: #ee5fa7; --b: #8ed3f2">
             <span class="reel-art" aria-hidden="true"><svg class="icon"><use href="#i-palette" /></svg></span>
             <span class="reel-play" aria-hidden="true"><svg class="icon"><use href="#i-play" /></svg></span>
@@ -608,9 +606,9 @@
           </a>
         </div>
         <div class="social-row" data-reveal>
-          <a href="https://www.instagram.com/arrgroomingsalon/" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-instagram" /></svg>Instagram<span>@arrgroomingsalon</span></a>
-          <a href="https://www.facebook.com/p/Arr-Grooming-Salon-61557057672577/" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-facebook" /></svg>Facebook<span>Arr Grooming Salon</span></a>
-          <a href="https://www.tiktok.com/@arrgrooming.salon" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-tiktok" /></svg>TikTok<span>@arrgrooming.salon</span></a>
+          <a data-link="instagram" href="https://www.instagram.com/arrgroomingsalon/" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-instagram" /></svg>Instagram<span data-cms="contact.instagramHandle">@arrgroomingsalon</span></a>
+          <a data-link="facebook" href="https://www.facebook.com/p/Arr-Grooming-Salon-61557057672577/" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-facebook" /></svg>Facebook<span data-cms="siteName">Arr Grooming Salon</span></a>
+          <a data-link="tiktok" href="https://www.tiktok.com/@arrgrooming.salon" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-tiktok" /></svg>TikTok<span data-cms="contact.tiktokHandle">@arrgrooming.salon</span></a>
         </div>
       </section>
 
@@ -620,65 +618,67 @@
           <div class="rating-card" data-reveal>
             <h2 id="reviews-title" class="visually-hidden">Recenzii</h2>
             <div class="rating-top">
-              <p class="rating-score"><strong data-count="5" data-decimals="1">5,0</strong><span>din 5</span></p>
+              <p class="rating-score"><strong data-cms="reviews.score" data-count="5" data-decimals="1">5,0</strong><span>din 5</span></p>
               <div class="stars big" role="img" aria-label="5 stele din 5">
                 <svg class="icon" aria-hidden="true"><use href="#i-star" /></svg><svg class="icon" aria-hidden="true"><use href="#i-star" /></svg><svg class="icon" aria-hidden="true"><use href="#i-star" /></svg><svg class="icon" aria-hidden="true"><use href="#i-star" /></svg><svg class="icon" aria-hidden="true"><use href="#i-star" /></svg>
               </div>
-              <p class="rating-sub">Nota primită de la clienți pe Google și pe Facebook.</p>
+              <p class="rating-sub" data-cms="reviews.subtitle">Nota primită de la clienți pe Google și pe Facebook.</p>
             </div>
             <figure class="quote">
               <svg class="icon quote-mark" aria-hidden="true"><use href="#i-quote" /></svg>
-              <blockquote><p>„Recomand! Prețuri accesibile și servicii excepționale!”</p></blockquote>
-              <figcaption>Alina S. · recenzie pe Google</figcaption>
+              <blockquote><p data-cms-tpl="„{reviews.quote}”">„Recomand! Prețuri accesibile și servicii excepționale!”</p></blockquote>
+              <figcaption data-cms="reviews.author">Alina S. · recenzie pe Google</figcaption>
             </figure>
-            <a class="text-link light" href="https://maps.google.com/?cid=6354732514170197996" target="_blank" rel="noopener">Citește recenziile pe Google <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg></a>
+            <a class="text-link light" data-link="maps" href="https://maps.google.com/?cid=6354732514170197996" target="_blank" rel="noopener">Citește recenziile pe Google <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg></a>
             <span class="rating-paw" aria-hidden="true"><svg class="icon"><use href="#i-paw" /></svg></span>
           </div>
           <div class="faq" data-reveal>
             <h2>Întrebări <em>frecvente</em></h2>
-            <details class="faq-item" name="faq" open>
-              <summary>Cât durează o programare?<span class="plus" aria-hidden="true"></span></summary>
-              <div class="faq-content"><p>Depinde de serviciu, de talie și de starea blăniței. În calendar vezi o durată estimativă pentru fiecare serviciu, iar la confirmare ți-o spunem exact.</p></div>
-            </details>
-            <details class="faq-item" name="faq">
-              <summary>Cât costă serviciile?<span class="plus" aria-hidden="true"></span></summary>
-              <div class="faq-content"><p>Prețul depinde de talie, rasă și cât de încâlcită este blănița. Ți-l comunicăm înainte de programare, ca să știi de la început la ce să te aștepți.</p></div>
-            </details>
-            <details class="faq-item" name="faq">
-              <summary>Lucrați și cu pisici?<span class="plus" aria-hidden="true"></span></summary>
-              <div class="faq-content"><p>Da. Pisicile au nevoie de și mai multă răbdare, așa că le lăsăm timp să se obișnuiască cu noi și lucrăm cât mai liniștit.</p></div>
-            </details>
-            <details class="faq-item" name="faq">
-              <summary>Cum îmi pregătesc blănosul?<span class="plus" aria-hidden="true"></span></summary>
-              <div class="faq-content"><p>Ideal, scoate câinele la plimbare înainte de programare. Spune-ne din timp dacă are probleme de piele, alergii sau zone mai sensibile.</p></div>
-            </details>
-            <details class="faq-item" name="faq">
-              <summary>Pot muta sau anula programarea?<span class="plus" aria-hidden="true"></span></summary>
-              <div class="faq-content"><p>Sigur. Sună-ne cât mai din timp la <a href="tel:+40744134819">0744 134 819</a>, ca să putem oferi intervalul altui blănos.</p></div>
-            </details>
+            <div class="faq-list" data-cms-list="faq">
+              <details class="faq-item" name="faq" open>
+                <summary>Cât durează o programare?<span class="plus" aria-hidden="true"></span></summary>
+                <div class="faq-content"><p>Depinde de serviciu, de talie și de starea blăniței. În calendar vezi o durată estimativă pentru fiecare serviciu, iar la confirmare ți-o spunem exact.</p></div>
+              </details>
+              <details class="faq-item" name="faq">
+                <summary>Cât costă serviciile?<span class="plus" aria-hidden="true"></span></summary>
+                <div class="faq-content"><p>Prețul depinde de talie, rasă și cât de încâlcită este blănița. Ți-l comunicăm înainte de programare, ca să știi de la început la ce să te aștepți.</p></div>
+              </details>
+              <details class="faq-item" name="faq">
+                <summary>Lucrați și cu pisici?<span class="plus" aria-hidden="true"></span></summary>
+                <div class="faq-content"><p>Da. Pisicile au nevoie de și mai multă răbdare, așa că le lăsăm timp să se obișnuiască cu noi și lucrăm cât mai liniștit.</p></div>
+              </details>
+              <details class="faq-item" name="faq">
+                <summary>Cum îmi pregătesc blănosul?<span class="plus" aria-hidden="true"></span></summary>
+                <div class="faq-content"><p>Ideal, scoate câinele la plimbare înainte de programare. Spune-ne din timp dacă are probleme de piele, alergii sau zone mai sensibile.</p></div>
+              </details>
+              <details class="faq-item" name="faq">
+                <summary>Pot muta sau anula programarea?<span class="plus" aria-hidden="true"></span></summary>
+                <div class="faq-content"><p>Sigur. Sună-ne cât mai din timp la <a href="tel:+40744134819">0744 134 819</a>, ca să putem oferi intervalul altui blănos.</p></div>
+              </details>
+            </div>
           </div>
         </div>
       </section>
 
       <section class="contact section-wrap" id="contact" aria-labelledby="contact-title">
-        <div class="section-label"><span>07 / Contact</span><span>Galați, România</span></div>
+        <div class="section-label"><span>07 / Contact</span><span data-cms-tpl="{contact.city}, România">Galați, România</span></div>
         <div class="contact-grid">
           <div class="contact-main" data-reveal>
-            <h2 id="contact-title">Hai în vizită.<br /><em>Blănosul tău e așteptat.</em></h2>
-            <p>Sună-ne pentru programări sau întrebări, ori scrie-ne pe rețelele sociale.</p>
+            <h2 id="contact-title"><span data-cms="contactSection.title">Hai în vizită.</span><br /><em data-cms="contactSection.accent">Blănosul tău e așteptat.</em></h2>
+            <p data-cms="contactSection.text">Sună-ne pentru programări sau întrebări, ori scrie-ne pe rețelele sociale.</p>
             <div class="phone-row">
-              <a class="contact-phone" href="tel:+40744134819">0744 134 819 <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg></a>
-              <button class="copy-btn" type="button" data-copy="0744 134 819" aria-label="Copiază numărul de telefon"><svg class="icon" aria-hidden="true"><use href="#i-copy" /></svg></button>
+              <a class="contact-phone" data-link="tel" href="tel:+40744134819"><span data-cms="contact.phoneDisplay">0744 134 819</span> <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg></a>
+              <button class="copy-btn" type="button" data-copy="0744 134 819" data-cms-copy="{contact.phoneDisplay}" aria-label="Copiază numărul de telefon"><svg class="icon" aria-hidden="true"><use href="#i-copy" /></svg></button>
             </div>
             <div class="social-buttons">
-              <a href="https://wa.me/40744134819" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-whatsapp" /></svg>WhatsApp</a>
-              <a href="https://www.facebook.com/p/Arr-Grooming-Salon-61557057672577/" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-facebook" /></svg>Facebook</a>
-              <a href="https://www.instagram.com/arrgroomingsalon/" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-instagram" /></svg>Instagram</a>
-              <a class="is-tiktok" href="https://www.tiktok.com/@arrgrooming.salon" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-tiktok" /></svg>TikTok</a>
+              <a data-link="whatsapp" href="https://wa.me/40744134819" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-whatsapp" /></svg>WhatsApp</a>
+              <a data-link="facebook" href="https://www.facebook.com/p/Arr-Grooming-Salon-61557057672577/" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-facebook" /></svg>Facebook</a>
+              <a data-link="instagram" href="https://www.instagram.com/arrgroomingsalon/" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-instagram" /></svg>Instagram</a>
+              <a class="is-tiktok" data-link="tiktok" href="https://www.tiktok.com/@arrgrooming.salon" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-tiktok" /></svg>TikTok</a>
             </div>
           </div>
           <div class="visit-card" data-reveal>
-            <a class="map-card" href="https://maps.google.com/?cid=6354732514170197996" target="_blank" rel="noopener" aria-label="Deschide locația salonului în Google Maps">
+            <a class="map-card" data-link="maps" href="https://maps.google.com/?cid=6354732514170197996" target="_blank" rel="noopener" aria-label="Deschide locația salonului în Google Maps">
               <svg class="map-art" viewBox="0 0 400 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
                 <rect width="400" height="220" class="m-bg" />
                 <path class="m-block" d="M20 18h92v54H20zM132 18h70v40h-70zM226 10h80v58h-80zM326 22h70v50h-70zM20 150h70v60H20zM300 150h90v60h-90z" />
@@ -696,11 +696,11 @@
             </a>
             <div class="visit-body">
               <p class="eyebrow">Ne găsești aici</p>
-              <h3>Str. 1 Decembrie 1918 nr. 1<br />Bl. S5C, parter · Galați</h3>
-              <p class="landmark"><svg class="icon" aria-hidden="true"><use href="#i-pin" /></svg>Lângă Salonul Ciufulix</p>
-              <a class="text-link" href="https://www.google.com/maps/dir/?api=1&amp;destination=Arr+Grooming+Salon%2C+Strada+1+Decembrie+1918+1%2C+Gala%C8%9Bi" target="_blank" rel="noopener">Vezi traseul <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg></a>
+              <h3 data-cms-lines="visitAddress">Str. 1 Decembrie 1918 nr. 1<br />Bl. S5C, parter · Galați</h3>
+              <p class="landmark"><svg class="icon" aria-hidden="true"><use href="#i-pin" /></svg><span data-cms="contact.landmark">Lângă Salonul Ciufulix</span></p>
+              <a class="text-link" data-link="directions" href="https://www.google.com/maps/dir/?api=1&amp;destination=Arr+Grooming+Salon%2C+Strada+1+Decembrie+1918+1%2C+Gala%C8%9Bi" target="_blank" rel="noopener">Vezi traseul <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg></a>
               <p class="open-status" data-open-status><span class="pulse" aria-hidden="true"></span><span data-status-text>Program</span></p>
-              <div class="hours" id="hours">
+              <div class="hours" id="hours" data-cms-list="hours">
                 <div data-day="1"><span>Luni</span><strong>09:00 – 18:00</strong></div>
                 <div data-day="2"><span>Marți</span><strong>09:00 – 18:00</strong></div>
                 <div data-day="3"><span>Miercuri</span><strong>09:00 – 18:00</strong></div>
@@ -709,6 +709,7 @@
                 <div data-day="6"><span>Sâmbătă</span><strong>09:00 – 14:00</strong></div>
                 <div data-day="0"><span>Duminică</span><strong>Închis</strong></div>
               </div>
+              <div class="closed-days" id="closed-days" hidden></div>
             </div>
           </div>
         </div>
@@ -725,26 +726,26 @@
             <small>SALON · CÂINI &amp; PISICI</small>
           </span>
         </a>
-        <p class="footer-tag">Fiecare blăniță <em>merită răsfăț.</em></p>
+        <p class="footer-tag"><span data-cms="footer.tagline">Fiecare blăniță</span> <em data-cms="footer.taglineAccent">merită răsfăț.</em></p>
         <a class="button light" href="#programari">Programează-te <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg></a>
       </div>
       <div class="footer-cols">
         <div>
           <h3>Salon</h3>
-          <p>Str. 1 Decembrie 1918 nr. 1<br />Bl. S5C, parter, Galați<br />Lângă Salonul Ciufulix</p>
+          <p data-cms-lines="footerSalon">Str. 1 Decembrie 1918 nr. 1<br />Bl. S5C, parter, Galați<br />Lângă Salonul Ciufulix</p>
         </div>
         <div>
           <h3>Program</h3>
-          <p>Luni – Vineri: 09:00 – 18:00<br />Sâmbătă: 09:00 – 14:00<br />Duminică: închis</p>
+          <p data-cms-lines="footerProgram">Luni – Vineri: 09:00 – 18:00<br />Sâmbătă: 09:00 – 14:00<br />Duminică: închis</p>
         </div>
         <div>
           <h3>Contact</h3>
-          <p><a href="tel:+40744134819">0744 134 819</a></p>
+          <p><a data-link="tel" href="tel:+40744134819" data-cms="contact.phoneDisplay">0744 134 819</a></p>
           <div class="footer-socials">
-            <a href="https://www.facebook.com/p/Arr-Grooming-Salon-61557057672577/" target="_blank" rel="noopener" aria-label="Facebook"><svg class="icon" aria-hidden="true"><use href="#i-facebook" /></svg></a>
-            <a href="https://www.instagram.com/arrgroomingsalon/" target="_blank" rel="noopener" aria-label="Instagram"><svg class="icon" aria-hidden="true"><use href="#i-instagram" /></svg></a>
-            <a href="https://www.tiktok.com/@arrgrooming.salon" target="_blank" rel="noopener" aria-label="TikTok"><svg class="icon" aria-hidden="true"><use href="#i-tiktok" /></svg></a>
-            <a href="https://wa.me/40744134819" target="_blank" rel="noopener" aria-label="WhatsApp"><svg class="icon" aria-hidden="true"><use href="#i-whatsapp" /></svg></a>
+            <a data-link="facebook" href="https://www.facebook.com/p/Arr-Grooming-Salon-61557057672577/" target="_blank" rel="noopener" aria-label="Facebook"><svg class="icon" aria-hidden="true"><use href="#i-facebook" /></svg></a>
+            <a data-link="instagram" href="https://www.instagram.com/arrgroomingsalon/" target="_blank" rel="noopener" aria-label="Instagram"><svg class="icon" aria-hidden="true"><use href="#i-instagram" /></svg></a>
+            <a data-link="tiktok" href="https://www.tiktok.com/@arrgrooming.salon" target="_blank" rel="noopener" aria-label="TikTok"><svg class="icon" aria-hidden="true"><use href="#i-tiktok" /></svg></a>
+            <a data-link="whatsapp" href="https://wa.me/40744134819" target="_blank" rel="noopener" aria-label="WhatsApp"><svg class="icon" aria-hidden="true"><use href="#i-whatsapp" /></svg></a>
           </div>
         </div>
         <nav aria-label="Navigare în subsol">
@@ -757,15 +758,15 @@
         </nav>
       </div>
       <div class="footer-bottom">
-        <span>© <span id="year">2026</span> Arr Grooming Salon · Galați</span>
-        <span>Răsfăț pentru blănoși.</span>
+        <span>© <span id="year">2026</span> <span data-cms="siteName">Arr Grooming Salon</span> · <span data-cms="contact.city">Galați</span></span>
+        <span data-cms="footer.bottom">Răsfăț pentru blănoși.</span>
         <a href="#main" class="footer-up">Înapoi sus <svg class="icon" aria-hidden="true"><use href="#i-up" /></svg></a>
       </div>
     </footer>
 
     <div class="mobile-bar">
       <a class="mobile-book" href="#programari"><svg class="icon" aria-hidden="true"><use href="#i-calendar" /></svg>Programează-te</a>
-      <a class="mobile-call" href="tel:+40744134819" aria-label="Sună la salon: 0744 134 819"><svg class="icon" aria-hidden="true"><use href="#i-phone" /></svg></a>
+      <a class="mobile-call" data-link="tel" href="tel:+40744134819" data-cms-aria="Sună la salon: {contact.phoneDisplay}" aria-label="Sună la salon: 0744 134 819"><svg class="icon" aria-hidden="true"><use href="#i-phone" /></svg></a>
     </div>
 
     <button class="to-top" type="button" aria-label="Înapoi la începutul paginii">
@@ -780,7 +781,7 @@
       <p id="bd-desc">Alege cum ne trimiți detaliile. Programarea devine sigură după ce te sunăm să o confirmăm.</p>
       <dl class="bd-summary" id="bd-summary"></dl>
       <div class="bd-actions">
-        <a class="bd-action bd-wa" id="bd-whatsapp" href="https://wa.me/40744134819" target="_blank" rel="noopener">
+        <a class="bd-action bd-wa" id="bd-whatsapp" data-link="whatsapp" href="https://wa.me/40744134819" target="_blank" rel="noopener">
           <svg class="icon" aria-hidden="true"><use href="#i-whatsapp" /></svg>
           <span><strong>Trimite pe WhatsApp</strong><small>mesajul se completează automat</small></span>
           <svg class="icon bd-arrow" aria-hidden="true"><use href="#i-arrow" /></svg>
@@ -790,9 +791,9 @@
           <span><strong>Trimite SMS</strong><small>din aplicația de mesaje</small></span>
           <svg class="icon bd-arrow" aria-hidden="true"><use href="#i-arrow" /></svg>
         </a>
-        <a class="bd-action" href="tel:+40744134819">
+        <a class="bd-action" data-link="tel" href="tel:+40744134819">
           <svg class="icon" aria-hidden="true"><use href="#i-phone" /></svg>
-          <span><strong>Sună acum</strong><small>0744 134 819</small></span>
+          <span><strong>Sună acum</strong><small data-cms="contact.phoneDisplay">0744 134 819</small></span>
           <svg class="icon bd-arrow" aria-hidden="true"><use href="#i-arrow" /></svg>
         </a>
       </div>
@@ -803,5 +804,201 @@
     </dialog>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <!-- Conținutul editabil din panoul /admin. Nu modifica manual: folosește panoul. -->
+    <script type="application/json" id="site-content">
+{
+  "version": 1,
+  "siteName": "Arr Grooming Salon",
+  "seo": {
+    "title": "Arr Grooming Salon — Grooming pentru câini și pisici în Galați",
+    "description": "Arr Grooming Salon, salon de grooming pentru câini și pisici în Galați: tuns, spălat, toaletaj complet și programări online. Str. 1 Decembrie 1918 nr. 1, tel. 0744 134 819."
+  },
+  "announcement": { "enabled": false, "text": "", "link": "" },
+  "contact": {
+    "phoneDisplay": "0744 134 819",
+    "street": "Str. 1 Decembrie 1918 nr. 1",
+    "building": "Bl. S5C, parter",
+    "city": "Galați",
+    "postalCode": "800511",
+    "landmark": "Lângă Salonul Ciufulix",
+    "mapsUrl": "https://maps.google.com/?cid=6354732514170197996",
+    "facebook": "https://www.facebook.com/p/Arr-Grooming-Salon-61557057672577/",
+    "instagram": "https://www.instagram.com/arrgroomingsalon/",
+    "instagramHandle": "@arrgroomingsalon",
+    "tiktok": "https://www.tiktok.com/@arrgrooming.salon",
+    "tiktokHandle": "@arrgrooming.salon"
+  },
+  "hours": [
+    { "day": 1, "open": "09:00", "close": "18:00", "closed": false },
+    { "day": 2, "open": "09:00", "close": "18:00", "closed": false },
+    { "day": 3, "open": "09:00", "close": "18:00", "closed": false },
+    { "day": 4, "open": "09:00", "close": "18:00", "closed": false },
+    { "day": 5, "open": "09:00", "close": "18:00", "closed": false },
+    { "day": 6, "open": "09:00", "close": "14:00", "closed": false },
+    { "day": 0, "open": "09:00", "close": "14:00", "closed": true }
+  ],
+  "closedDates": [],
+  "booking": {
+    "title": "Alege ziua și ora.",
+    "accent": "Noi pregătim prosopul.",
+    "text": "Completezi în mai puțin de un minut. Cererea ajunge direct la salon, iar noi te sunăm să confirmăm.",
+    "slotStep": 30,
+    "leadMinutes": 60,
+    "horizonDays": 60,
+    "endpoint": ""
+  },
+  "hero": {
+    "eyebrow": "Grooming pentru câini și pisici · Galați",
+    "titleLine1": "Fiecare blăniță",
+    "titleLine2": "merită",
+    "titleAccent": "răsfăț.",
+    "lead": "Tuns, spălat și toaletaj complet, făcute cu răbdare și blândețe. Îngrijire profesională la prețuri accesibile, în inima Galațiului.",
+    "button": "Programează online",
+    "chip": "Câini & pisici",
+    "image": "assets/hero-dog.webp",
+    "imageAlt": "Un cățel mic, proaspăt tuns, cu o bandană înflorată la gât",
+    "imageWidth": 665,
+    "imageHeight": 1280
+  },
+  "about": {
+    "title": "Răsfăț pentru blănoși.",
+    "titleMuted": "Cu răbdare, nu cu grabă.",
+    "lead": "Pentru noi, o programare nu e doar un tuns. E o baie caldă, o blăniță pieptănată cu grijă și un blănos care pleacă acasă mai vesel decât a venit.",
+    "text": "Arr Grooming Salon este salonul de grooming din Galați unde câinii și pisicile sunt primiți ca niște oaspeți de onoare. Lucrăm în ritmul fiecăruia, îți explicăm ce facem și alegem împreună look-ul potrivit, la prețuri accesibile.",
+    "groomerName": "Daniel",
+    "groomerRole": "Groomer · te ajută să alegi tunsoarea potrivită pentru rasa și blănița lui",
+    "stats": [
+      { "value": "5,0", "suffix": "", "star": true, "label": "nota primită de la clienți pe Google" },
+      { "value": "6", "suffix": "zile", "star": false, "label": "pe săptămână deschis, de luni până sâmbătă" },
+      { "value": "2", "suffix": "specii", "star": false, "label": "de blănoși răsfățați: câini și pisici" }
+    ]
+  },
+  "servicesSection": {
+    "title": "Tot ce-i trebuie unei blănițe.",
+    "accent": "Într-un singur loc.",
+    "text": "Prețul și durata depind de talie, rasă și starea blăniței. Ți le spunem înainte, ca să nu ai surprize."
+  },
+  "services": [
+    {
+      "id": "complet",
+      "name": "Toaletaj complet",
+      "tag": "Cel mai cerut",
+      "description": "Pachetul complet pentru câini: baie, uscare, periaj, tuns după standardul rasei sau după preferința ta, tăiat unghii și curățat urechi. Pleacă acasă curat, pufos și parfumat.",
+      "icon": "i-sparkle",
+      "visible": true,
+      "bookable": true,
+      "pets": ["dog"],
+      "short": "Baie, uscare, tuns, unghii și urechi",
+      "duration": { "small": 90, "medium": 120, "large": 150, "cat": null }
+    },
+    {
+      "id": "tuns",
+      "name": "Tuns & styling",
+      "tag": "Forma potrivită",
+      "description": "Tuns complet sau doar retușuri: tuns pe rasă, look de ursuleț (Teddy), tunsoare scurtă de vară sau tuns igienic. Spune-ne ce îți dorești și găsim varianta care i se potrivește.",
+      "icon": "i-scissors",
+      "visible": true,
+      "bookable": true,
+      "pets": ["dog"],
+      "short": "Pe rasă, Teddy, de vară sau igienic",
+      "duration": { "small": 75, "medium": 90, "large": 120, "cat": null }
+    },
+    {
+      "id": "baie",
+      "name": "Baie & periaj",
+      "tag": "Fără noduri",
+      "description": "Spălat, uscat și periat, cu descâlcire ușoară și îndepărtarea părului mort. Ideal între două tunsori, ca blănița să rămână curată și sănătoasă.",
+      "icon": "i-bath",
+      "visible": true,
+      "bookable": true,
+      "pets": ["dog", "cat"],
+      "short": "Spălat, uscat, periat, descâlcire ușoară",
+      "duration": { "small": 60, "medium": 75, "large": 90, "cat": 60 }
+    },
+    {
+      "id": "pisici",
+      "name": "Grooming pisici",
+      "tag": "Calm și blândețe",
+      "description": "Baie, uscare, periaj și descâlcire pentru pisici, cu tuns igienic sau complet la nevoie. Lucrăm cu răbdare, în ritmul pisicii, ca experiența să fie cât mai liniștită.",
+      "icon": "i-cat",
+      "visible": true,
+      "bookable": true,
+      "pets": ["cat"],
+      "short": "Baie, periaj, descâlcire, tuns la nevoie",
+      "duration": { "small": null, "medium": null, "large": null, "cat": 90 }
+    },
+    {
+      "id": "unghii",
+      "name": "Unghii & urechi",
+      "tag": "Rapid, fără stres",
+      "description": "Tăiat unghii și curățat urechi, ca serviciu separat sau adăugat la orice programare. Pentru câini și pisici de orice vârstă.",
+      "icon": "i-paw",
+      "visible": true,
+      "bookable": true,
+      "pets": ["dog", "cat"],
+      "short": "Tăiat unghii și curățat urechi",
+      "duration": { "small": 30, "medium": 30, "large": 30, "cat": 30 }
+    },
+    {
+      "id": "vopsit",
+      "name": "Vopsit creativ",
+      "tag": "Pentru curajoși",
+      "description": "Accente de culoare pe blăniță, cu produse dedicate animalelor. Discutăm înainte ce nuanță și ce zonă se potrivesc blănosului tău.",
+      "icon": "i-palette",
+      "visible": true,
+      "bookable": true,
+      "pets": ["dog"],
+      "short": "Accente de culoare pe blăniță",
+      "duration": { "small": 60, "medium": 90, "large": 120, "cat": null }
+    }
+  ],
+  "marquee": ["Toaletaj complet", "Tuns & styling", "Baie & periaj", "Grooming pisici", "Tunsoare Teddy", "Unghii & urechi", "Vopsit creativ"],
+  "process": {
+    "title": "De la programare",
+    "accent": "la blăniță pufoasă.",
+    "steps": [
+      { "title": "Alegi serviciul", "text": "Ne spui dacă vine un câine sau o pisică și de ce are nevoie blănița lui." },
+      { "title": "Alegi ziua și ora", "text": "Calendarul îți arată intervalele din programul salonului, potrivite cu durata serviciului." },
+      { "title": "Confirmăm împreună", "text": "Cererea ajunge la noi pe WhatsApp sau SMS. Te sunăm să confirmăm ora și prețul." },
+      { "title": "Vii la răsfăț", "text": "Îl aduci la salon, pe Str. 1 Decembrie 1918, iar noi ne ocupăm de restul." }
+    ]
+  },
+  "social": {
+    "title": "Transformări reale,",
+    "accent": "pe TikTok.",
+    "text": "Blănoși veseli, tunsori noi și momente din salon. Urmărește-ne ca să vezi ce putem face și pentru al tău.",
+    "reels": [
+      { "title": "Accente de culoare", "subtitle": "Vopsit creativ pe blăniță albă", "url": "https://www.tiktok.com/@arrgrooming.salon/video/7370019756767857953", "icon": "i-palette", "colorA": "pink", "colorB": "sky" },
+      { "title": "Ursulețul Teddy", "subtitle": "Tunsoare rotunjită, look de pluș", "url": "https://www.tiktok.com/@arrgrooming.salon/video/7369295227787463968", "icon": "i-scissors", "colorA": "sun", "colorB": "pink" },
+      { "title": "Baie și uscare", "subtitle": "Răsfăț pentru blănoși", "url": "https://www.tiktok.com/@arrgrooming.salon/video/7368781236740885792", "icon": "i-bath", "colorA": "sky", "colorB": "violet" },
+      { "title": "La masa de grooming", "subtitle": "O zi obișnuită în salon", "url": "https://www.tiktok.com/@arrgrooming.salon/video/7361853034827189537", "icon": "i-comb", "colorA": "pink", "colorB": "sun" }
+    ]
+  },
+  "reviews": {
+    "score": "5,0",
+    "subtitle": "Nota primită de la clienți pe Google și pe Facebook.",
+    "quote": "Recomand! Prețuri accesibile și servicii excepționale!",
+    "author": "Alina S. · recenzie pe Google"
+  },
+  "faq": [
+    { "q": "Cât durează o programare?", "a": "Depinde de serviciu, de talie și de starea blăniței. În calendar vezi o durată estimativă pentru fiecare serviciu, iar la confirmare ți-o spunem exact." },
+    { "q": "Cât costă serviciile?", "a": "Prețul depinde de talie, rasă și cât de încâlcită este blănița. Ți-l comunicăm înainte de programare, ca să știi de la început la ce să te aștepți." },
+    { "q": "Lucrați și cu pisici?", "a": "Da. Pisicile au nevoie de și mai multă răbdare, așa că le lăsăm timp să se obișnuiască cu noi și lucrăm cât mai liniștit." },
+    { "q": "Cum îmi pregătesc blănosul?", "a": "Ideal, scoate câinele la plimbare înainte de programare. Spune-ne din timp dacă are probleme de piele, alergii sau zone mai sensibile." },
+    { "q": "Pot muta sau anula programarea?", "a": "Sigur. Sună-ne cât mai din timp la 0744 134 819, ca să putem oferi intervalul altui blănos." }
+  ],
+  "contactSection": {
+    "title": "Hai în vizită.",
+    "accent": "Blănosul tău e așteptat.",
+    "text": "Sună-ne pentru programări sau întrebări, ori scrie-ne pe rețelele sociale."
+  },
+  "footer": {
+    "tagline": "Fiecare blăniță",
+    "taglineAccent": "merită răsfăț.",
+    "bottom": "Răsfăț pentru blănoși."
+  }
+}
+    </script>
   </body>
 </html>

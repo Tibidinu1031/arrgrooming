@@ -19,6 +19,7 @@ const types = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
+  ".json": "application/json; charset=utf-8",
   ".jpg": "image/jpeg",
   ".png": "image/png",
   ".webp": "image/webp",
@@ -32,10 +33,15 @@ http
       const url = new URL(request.url, "http://localhost");
       const pathname = decodeURIComponent(url.pathname);
       if (!pathname.startsWith(base)) throw new Error("Not found");
-      const relative = pathname.slice(base.length) || "index.html";
+      let relative = pathname.slice(base.length) || "index.html";
+      if (relative === "admin") {
+        response.writeHead(301, { Location: `${base}admin/` });
+        return response.end();
+      }
+      if (relative === "admin/") relative = "admin/index.html";
       if (
         !publicFiles.has(relative) &&
-        !/^assets\/[a-zA-Z0-9_.-]+$/.test(relative)
+        !/^(assets(\/uploads)?|admin)\/[a-zA-Z0-9_.-]+$/.test(relative)
       )
         throw new Error("Not found");
       const data = await readFile(path.join(root, relative));

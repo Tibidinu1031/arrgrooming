@@ -4,7 +4,7 @@ Site static, responsive, în limba română, pentru **Arr Grooming Salon**, salo
 
 ## Publicare pe GitHub Pages
 
-1. Urcă proiectul în repository: `index.html`, `styles.css`, `fonts.css`, `app.js`, tot folderul `assets/` și `.nojekyll`, direct în rădăcină.
+1. Urcă proiectul în repository: `index.html`, `styles.css`, `fonts.css`, `app.js`, folderele `assets/` și `admin/` și `.nojekyll`, direct în rădăcină.
 2. Deschide **Settings, apoi Pages** în repository.
 3. Alege **Deploy from a branch**, selectează branch-ul (de obicei `main`) și folderul **`/ (root)`**, apoi salvează.
 4. Deschide adresa afișată de GitHub după publicare.
@@ -28,12 +28,42 @@ Secțiunea **Programări** are un calendar complet, fără backend:
 
 La final se deschide o fereastră din care cererea se trimite gata completată pe **WhatsApp** sau prin **SMS** la 0744 134 819, ori clientul sună direct. Poate și descărca un eveniment `.ics` pentru calendarul lui. Programarea se confirmă telefonic de salon; site-ul nu salvează date.
 
-Totul se configurează la începutul fișierului `app.js`:
+Programul, zilele libere, serviciile cu duratele lor și regulile calendarului se modifică din panoul de administrare (secțiunile **Program și zile libere**, **Servicii** și **Programări online**). În zilele libere calendarul nu acceptă cereri, iar la contact apare lista zilelor în care salonul e închis. Opțional, în **Programări online**, la **Avansat**, se poate pune un URL (Formspree, Google Apps Script etc.) care primește automat cererile ca JSON.
 
-- `SALON.hours` — programul pe zile (acum L–V 09:00–18:00, S 09:00–14:00, D închis);
-- `SALON.slotStep`, `SALON.leadMinutes`, `SALON.horizonDays` — pasul dintre ore, cât de repede se poate programa cineva în ziua curentă și câte zile în avans;
-- `SERVICES` — serviciile, pentru ce animale sunt și duratele estimative pe talii;
-- `SALON.bookingEndpoint` — opțional, un URL (Formspree, Google Apps Script etc.) care primește cererea ca JSON. Dacă e completat, cererea ajunge și automat la salon.
+## Panoul de administrare
+
+Adresa: https://tibidinu1031.github.io/arrgrooming/admin/
+
+Utilizatorul și parola sunt în fișierul local `admin-credentiale.txt` din rădăcina proiectului. Fișierul e trecut în `.gitignore` și nu se urcă pe GitHub. În repository e salvată doar o amprentă a parolei (PBKDF2-SHA-256, 600.000 de iterații) în `admin/auth.json`, din care parola nu poate fi recuperată.
+
+Din panou clientul poate modifica, fără cod:
+
+- anunțul de sus (o bandă roz pentru concedii sau oferte);
+- textele și imaginea din prima pagină (imaginile se micșorează și se convertesc automat);
+- secțiunile Despre noi, Servicii (adăugare, ștergere, ordine, durate în calendar), Cum funcționează, TikTok, Recenzii și Întrebări frecvente;
+- programul pe zile, zilele libere și regulile calendarului;
+- telefonul, adresa, linkurile de hartă și rețelele sociale (actualizate peste tot pe site);
+- subsolul, titlul și descrierea pentru Google.
+
+Fluxul e simplu: modifici, apeși **Previzualizează** (calculator, tabletă sau telefon), apoi **Publică**. Panoul salvează o versiune nouă în GitHub, iar GitHub Pages actualizează site-ul în aproximativ un minut. Panoul anunță singur când modificările sunt live. Din **Istoric versiuni** orice versiune anterioară poate fi încărcată în editor și republicată.
+
+### Conectarea la GitHub, o singură dată
+
+Ca să poată publica, panoul are nevoie de o cheie de acces GitHub. Pașii sunt afișați și în panou, la **Cont și conectare**:
+
+1. Proprietarul contului GitHub deschide https://github.com/settings/personal-access-tokens/new și creează un **fine-grained token**.
+2. La **Repository access** alege **Only select repositories**, apoi `Tibidinu1031/arrgrooming`.
+3. La **Permissions** adaugă **Contents: Read and write**.
+4. Alege cea mai lungă valabilitate, generează tokenul și lipește-l în panou, la **Cont și conectare**.
+
+Tokenul se salvează în `admin/auth.json` criptat cu AES-GCM, cu o cheie derivată din parola panoului. Fără parolă nu poate fi folosit. Are acces doar la acest repository. Când expiră, panoul arată un mesaj; se creează unul nou și se reconectează. Tot din **Cont și conectare** se schimbă parola (butonul **Generează o parolă** propune una puternică).
+
+### Pentru dezvoltatori
+
+- Textele editabile sunt marcate în `index.html` cu atribute `data-cms`, `data-cms-tpl`, `data-cms-lines`, `data-cms-list` și `data-link`. Toate datele sunt în blocul `<script type="application/json" id="site-content">` de la finalul paginii.
+- `admin/render.js` aplică datele peste HTML; `app.js` citește același bloc pentru calendar, program și zilele libere. Site-ul public rămâne HTML static: nimic nu se generează în browserul vizitatorilor.
+- Panoul publică pornind de la ultima versiune a `index.html` din GitHub, deci modificările de cod din `index.html` se păstrează. Nu edita manual blocul `site-content` decât cu JSON valid.
+- Doar pe `localhost`, panoul acceptă `?api=` (un API GitHub de test) și `?auth=` (alt fișier de autentificare), pentru teste locale.
 
 ## Conținut și surse
 
