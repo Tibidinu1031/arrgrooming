@@ -228,6 +228,23 @@ const LISTS = {
       )
       .join("");
   },
+  gallery(content) {
+    return (content.gallery?.items || [])
+      .map((item, index) => {
+        const front = item.image
+          ? `<img src="${esc(item.image)}" alt="${esc(item.alt || item.label)}" loading="lazy" decoding="async" draggable="false" />`
+          : `<div class="g-soon"><span class="g-soon-icon" aria-hidden="true">${icon("i-camera")}</span><strong>Coming Soon</strong><span>Poze din salon, în curând</span></div>`;
+        return `
+          <figure class="g-card${item.image ? " has-image" : ""}" data-index="${index}">
+            <div class="g-face g-front">
+              ${front}
+              <figcaption class="g-label">${esc(item.label)}</figcaption>
+            </div>
+            <div class="g-face g-back" aria-hidden="true"><img src="assets/logo-mark.svg" alt="" width="64" height="64" loading="lazy" /></div>
+          </figure>`;
+      })
+      .join("");
+  },
   hours(content) {
     const map = hoursByDay(content.hours);
     return DAY_ORDER.map((day) => {

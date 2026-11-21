@@ -95,6 +95,7 @@
         <symbol id="i-whatsapp" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" d="M4 20.2l1.25-4.05A8.4 8.4 0 1 1 8.1 19z" /><path fill="currentColor" d="M9.15 7.85c.2-.45.42-.46.62-.47h.53c.18 0 .43.06.57.42l.74 1.78c.08.2.07.4-.06.58l-.5.62c-.12.14-.2.32-.08.53.52.92 1.32 1.74 2.33 2.26.2.1.4.08.53-.08l.64-.75c.18-.22.34-.2.58-.1l1.62.78c.22.1.37.17.4.32.06.46-.18 1.2-.68 1.6-.52.42-1.4.64-2.44.33-1.65-.5-3.24-1.8-4.25-3.36-.72-1.1-1.04-2.2-.55-3.46z" /></symbol>
         <symbol id="i-tiktok" viewBox="0 0 24 24"><path fill="currentColor" d="M16.6 5.82A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z" /></symbol>
         <symbol id="i-instagram" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3.5" y="3.5" width="17" height="17" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none" /></symbol>
+        <symbol id="i-camera" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.8l1.4-2h4.6l1.4 2h1.8A2.5 2.5 0 0 1 20 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5z" /><circle cx="12" cy="12.8" r="3.6" /></symbol>
         <symbol id="i-facebook" viewBox="0 0 24 24"><path fill="currentColor" d="M13.4 21.5v-8h2.7l.4-3.2h-3.1V8.3c0-.9.3-1.5 1.6-1.5h1.7V4c-.3 0-1.3-.1-2.4-.1-2.4 0-4 1.5-4 4.1v2.3H7.6v3.2h2.7v8z" /></symbol>
       </defs>
     </svg>
@@ -322,6 +323,97 @@
               </div>
             </div>
           </div>
+        </div>
+
+        <div class="gallery" data-reveal>
+          <div class="gallery-head">
+            <div class="gallery-intro">
+              <p class="eyebrow"><svg class="icon" aria-hidden="true"><use href="#i-camera" /></svg>Galerie foto</p>
+              <h3 data-cms="gallery.title">Blănoși răsfățați, pe raft.</h3>
+              <p data-cms="gallery.text">Trage cu degetul sau cu mouse-ul ca să învârți raftul. Pozele din salon apar aici în curând.</p>
+            </div>
+            <div class="gallery-controls">
+              <button class="gallery-btn" type="button" data-gallery-prev aria-label="Poza anterioară"><svg class="icon" aria-hidden="true"><use href="#i-left" /></svg></button>
+              <span class="gallery-count" aria-live="polite"><strong data-gallery-current>01</strong> / <span data-gallery-total>10</span></span>
+              <button class="gallery-btn" type="button" data-gallery-next aria-label="Poza următoare"><svg class="icon" aria-hidden="true"><use href="#i-right" /></svg></button>
+            </div>
+          </div>
+          <div class="gallery-stage" tabindex="0" role="region" aria-roledescription="carusel 3D" aria-label="Galerie foto. Folosește săgețile stânga și dreapta ca să rotești raftul.">
+            <div class="gallery-ring" data-cms-list="gallery">
+          <figure class="g-card" data-index="0">
+            <div class="g-face g-front">
+              <div class="g-soon"><span class="g-soon-icon" aria-hidden="true"><svg class="icon"><use href="#i-camera"></use></svg></span><strong>Coming Soon</strong><span>Poze din salon, în curând</span></div>
+              <figcaption class="g-label">Înainte și după</figcaption>
+            </div>
+            <div class="g-face g-back" aria-hidden="true"><img src="assets/logo-mark.svg" alt="" width="64" height="64" loading="lazy" /></div>
+          </figure>
+          <figure class="g-card" data-index="1">
+            <div class="g-face g-front">
+              <div class="g-soon"><span class="g-soon-icon" aria-hidden="true"><svg class="icon"><use href="#i-camera"></use></svg></span><strong>Coming Soon</strong><span>Poze din salon, în curând</span></div>
+              <figcaption class="g-label">Tunsori Teddy</figcaption>
+            </div>
+            <div class="g-face g-back" aria-hidden="true"><img src="assets/logo-mark.svg" alt="" width="64" height="64" loading="lazy" /></div>
+          </figure>
+          <figure class="g-card" data-index="2">
+            <div class="g-face g-front">
+              <div class="g-soon"><span class="g-soon-icon" aria-hidden="true"><svg class="icon"><use href="#i-camera"></use></svg></span><strong>Coming Soon</strong><span>Poze din salon, în curând</span></div>
+              <figcaption class="g-label">Pisici răsfățate</figcaption>
+            </div>
+            <div class="g-face g-back" aria-hidden="true"><img src="assets/logo-mark.svg" alt="" width="64" height="64" loading="lazy" /></div>
+          </figure>
+          <figure class="g-card" data-index="3">
+            <div class="g-face g-front">
+              <div class="g-soon"><span class="g-soon-icon" aria-hidden="true"><svg class="icon"><use href="#i-camera"></use></svg></span><strong>Coming Soon</strong><span>Poze din salon, în curând</span></div>
+              <figcaption class="g-label">Salonul nostru</figcaption>
+            </div>
+            <div class="g-face g-back" aria-hidden="true"><img src="assets/logo-mark.svg" alt="" width="64" height="64" loading="lazy" /></div>
+          </figure>
+          <figure class="g-card" data-index="4">
+            <div class="g-face g-front">
+              <div class="g-soon"><span class="g-soon-icon" aria-hidden="true"><svg class="icon"><use href="#i-camera"></use></svg></span><strong>Coming Soon</strong><span>Poze din salon, în curând</span></div>
+              <figcaption class="g-label">Baie și spumă</figcaption>
+            </div>
+            <div class="g-face g-back" aria-hidden="true"><img src="assets/logo-mark.svg" alt="" width="64" height="64" loading="lazy" /></div>
+          </figure>
+          <figure class="g-card" data-index="5">
+            <div class="g-face g-front">
+              <div class="g-soon"><span class="g-soon-icon" aria-hidden="true"><svg class="icon"><use href="#i-camera"></use></svg></span><strong>Coming Soon</strong><span>Poze din salon, în curând</span></div>
+              <figcaption class="g-label">Vopsit creativ</figcaption>
+            </div>
+            <div class="g-face g-back" aria-hidden="true"><img src="assets/logo-mark.svg" alt="" width="64" height="64" loading="lazy" /></div>
+          </figure>
+          <figure class="g-card" data-index="6">
+            <div class="g-face g-front">
+              <div class="g-soon"><span class="g-soon-icon" aria-hidden="true"><svg class="icon"><use href="#i-camera"></use></svg></span><strong>Coming Soon</strong><span>Poze din salon, în curând</span></div>
+              <figcaption class="g-label">Blănoși fericiți</figcaption>
+            </div>
+            <div class="g-face g-back" aria-hidden="true"><img src="assets/logo-mark.svg" alt="" width="64" height="64" loading="lazy" /></div>
+          </figure>
+          <figure class="g-card" data-index="7">
+            <div class="g-face g-front">
+              <div class="g-soon"><span class="g-soon-icon" aria-hidden="true"><svg class="icon"><use href="#i-camera"></use></svg></span><strong>Coming Soon</strong><span>Poze din salon, în curând</span></div>
+              <figcaption class="g-label">La masa de grooming</figcaption>
+            </div>
+            <div class="g-face g-back" aria-hidden="true"><img src="assets/logo-mark.svg" alt="" width="64" height="64" loading="lazy" /></div>
+          </figure>
+          <figure class="g-card" data-index="8">
+            <div class="g-face g-front">
+              <div class="g-soon"><span class="g-soon-icon" aria-hidden="true"><svg class="icon"><use href="#i-camera"></use></svg></span><strong>Coming Soon</strong><span>Poze din salon, în curând</span></div>
+              <figcaption class="g-label">Detalii de styling</figcaption>
+            </div>
+            <div class="g-face g-back" aria-hidden="true"><img src="assets/logo-mark.svg" alt="" width="64" height="64" loading="lazy" /></div>
+          </figure>
+          <figure class="g-card" data-index="9">
+            <div class="g-face g-front">
+              <div class="g-soon"><span class="g-soon-icon" aria-hidden="true"><svg class="icon"><use href="#i-camera"></use></svg></span><strong>Coming Soon</strong><span>Poze din salon, în curând</span></div>
+              <figcaption class="g-label">Prieteni noi</figcaption>
+            </div>
+            <div class="g-face g-back" aria-hidden="true"><img src="assets/logo-mark.svg" alt="" width="64" height="64" loading="lazy" /></div>
+          </figure>
+            </div>
+            <div class="gallery-floor" aria-hidden="true"></div>
+          </div>
+          <p class="gallery-hint" aria-hidden="true"><svg class="icon"><use href="#i-left" /></svg>Trage ca să învârți raftul<svg class="icon"><use href="#i-right" /></svg></p>
         </div>
       </section>
 
@@ -872,6 +964,22 @@
       { "value": "5,0", "suffix": "", "star": true, "label": "nota primită de la clienți pe Google" },
       { "value": "6", "suffix": "zile", "star": false, "label": "pe săptămână deschis, de luni până sâmbătă" },
       { "value": "2", "suffix": "specii", "star": false, "label": "de blănoși răsfățați: câini și pisici" }
+    ]
+  },
+  "gallery": {
+    "title": "Blănoși răsfățați, pe raft.",
+    "text": "Trage cu degetul sau cu mouse-ul ca să învârți raftul. Pozele din salon apar aici în curând.",
+    "items": [
+      { "label": "Înainte și după", "image": "", "alt": "" },
+      { "label": "Tunsori Teddy", "image": "", "alt": "" },
+      { "label": "Pisici răsfățate", "image": "", "alt": "" },
+      { "label": "Salonul nostru", "image": "", "alt": "" },
+      { "label": "Baie și spumă", "image": "", "alt": "" },
+      { "label": "Vopsit creativ", "image": "", "alt": "" },
+      { "label": "Blănoși fericiți", "image": "", "alt": "" },
+      { "label": "La masa de grooming", "image": "", "alt": "" },
+      { "label": "Detalii de styling", "image": "", "alt": "" },
+      { "label": "Prieteni noi", "image": "", "alt": "" }
     ]
   },
   "servicesSection": {

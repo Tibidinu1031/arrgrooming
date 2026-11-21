@@ -422,6 +422,210 @@ if (reducedMotion.matches) {
   $$(".hv-path").forEach((svg) => svg.pauseAnimations?.());
 }
 
+/* ---------- 3D gallery shelf ---------- */
+(function initGallery() {
+  const stage = $(".gallery-stage");
+  const ring = stage && $(".gallery-ring", stage);
+  if (!ring) return;
+  const cards = $$(".g-card", ring);
+  const count = cards.length;
+  if (count < 2) return;
+  const currentLabel = $("[data-gallery-current]");
+  const totalLabel = $("[data-gallery-total]");
+  if (totalLabel) totalLabel.textContent = pad(count);
+  const step = 360 / count;
+  const tilt = -6;
+  let radius = 0;
+  let rotation = 0;
+  let target = null;
+  let velocity = 0;
+  let dragging = false;
+  let pointerId = null;
+  let downCard = null;
+  let lastX = 0;
+  let lastTime = 0;
+  let moved = 0;
+  let pausedUntil = 0;
+  let inView = false;
+  let hovered = false;
+  let frame = 0;
+  let lastFrame = 0;
+  const pause = (ms = 6000) => (pausedUntil = performance.now() + ms);
+  const frontIndex = () => (((Math.round(-rotation / step) % count) + count) % count);
+  const nearest = () => Math.round(rotation / step) * step;
+
+  function render() {
+    ring.style.transform = `translateZ(${-radius}px) rotateX(${tilt}deg) rotateY(${rotation.toFixed(2)}deg)`;
+    const front = frontIndex();
+    cards.forEach((card, index) => {
+      const angle = ((((index * step + rotation) % 360) + 540) % 360) - 180;
+      card.style.setProperty("--f", Math.cos((angle * Math.PI) / 180).toFixed(3));
+      card.classList.toggle("is-front", index === front);
+    });
+    const label = pad(front + 1);
+    if (currentLabel && currentLabel.textContent !== label) currentLabel.textContent = label;
+  }
+  function layout() {
+    const width = cards[0].offsetWidth || 220;
+    radius = Math.round(width / 2 / Math.tan(Math.PI / count) + Math.max(16, width * 0.14));
+    cards.forEach((card, index) => (card.style.transform = `rotateY(${index * step}deg) translateZ(${radius}px)`));
+    render();
+  }
+  function tick(now) {
+    frame = 0;
+    const dt = Math.min(48, now - (lastFrame || now));
+    lastFrame = now;
+    let busy = dragging;
+    if (!dragging && target !== null) {
+      const diff = target - rotation;
+      if (Math.abs(diff) < 0.04) {
+        rotation = target;
+        target = null;
+      } else {
+        rotation += diff * Math.min(1, dt / 110);
+        busy = true;
+      }
+    } else if (!dragging && Math.abs(velocity) > 0.03) {
+      rotation += velocity * (dt / 16);
+      velocity *= Math.pow(0.9, dt / 16);
+      if (Math.abs(velocity) <= 0.03) {
+        velocity = 0;
+        target = nearest();
+      }
+      busy = true;
+    } else if (!dragging && !reducedMotion.matches && inView && !hovered && now > pausedUntil && document.visibilityState === "visible") {
+      rotation -= dt * 0.0065;
+      busy = true;
+    }
+    render();
+    if (busy || inView) frame = requestAnimationFrame(tick);
+  }
+  function start() {
+    if (!frame) {
+      lastFrame = 0;
+      frame = requestAnimationFrame(tick);
+    }
+  }
+  function goTo(index) {
+    const desired = -(((index % count) + count) % count) * step;
+    const next = desired + 360 * Math.round((rotation - desired) / 360);
+    velocity = 0;
+    pause();
+    if (reducedMotion.matches) {
+      rotation = next;
+      target = null;
+      render();
+      return;
+    }
+    target = next;
+    start();
+  }
+
+  stage.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0) return;
+    dragging = true;
+    pointerId = event.pointerId;
+    downCard = event.target.closest(".g-card");
+    lastX = event.clientX;
+    lastTime = performance.now();
+    moved = 0;
+    velocity = 0;
+    target = null;
+    stage.setPointerCapture(event.pointerId);
+    stage.classList.add("is-dragging");
+    pause();
+    start();
+  });
+  stage.addEventListener("pointermove", (event) => {
+    if (!dragging || event.pointerId !== pointerId) return;
+    const now = performance.now();
+    const dx = event.clientX - lastX;
+    const degrees = ((dx / radius) * 180) / Math.PI * 1.15;
+    rotation += degrees;
+    moved += Math.abs(dx);
+    velocity = Math.max(-4.5, Math.min(4.5, velocity * 0.6 + ((degrees * 16) / Math.max(8, now - lastTime)) * 0.4));
+    lastX = event.clientX;
+    lastTime = now;
+  });
+  const release = (event) => {
+    if (!dragging || event.pointerId !== pointerId) return;
+    dragging = false;
+    stage.classList.remove("is-dragging");
+    if (stage.hasPointerCapture(event.pointerId)) stage.releasePointerCapture(event.pointerId);
+    pause();
+    if (moved < 6 && downCard) {
+      goTo(Number(downCard.dataset.index));
+      return;
+    }
+    if (performance.now() - lastTime > 120) velocity = 0;
+    if (reducedMotion.matches || Math.abs(velocity) < 0.3) {
+      velocity = 0;
+      target = nearest();
+      if (reducedMotion.matches) {
+        rotation = target;
+        target = null;
+        render();
+      }
+    }
+    start();
+  };
+  stage.addEventListener("pointerup", release);
+  stage.addEventListener("pointercancel", release);
+  stage.addEventListener(
+    "wheel",
+    (event) => {
+      if (Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return;
+      event.preventDefault();
+      rotation -= event.deltaX * 0.18;
+      target = null;
+      velocity = 0;
+      pause(2500);
+      clearTimeout(stage._wheelSnap);
+      stage._wheelSnap = setTimeout(() => {
+        target = nearest();
+        start();
+      }, 160);
+      start();
+    },
+    { passive: false },
+  );
+  stage.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowRight") goTo(frontIndex() + 1);
+    else if (event.key === "ArrowLeft") goTo(frontIndex() - 1);
+    else if (event.key === "Home") goTo(0);
+    else if (event.key === "End") goTo(count - 1);
+    else return;
+    event.preventDefault();
+  });
+  stage.addEventListener("pointerenter", (event) => {
+    if (event.pointerType !== "mouse") return;
+    hovered = true;
+    if (!dragging && velocity === 0) {
+      target = nearest();
+      start();
+    }
+  });
+  stage.addEventListener("pointerleave", (event) => {
+    if (event.pointerType === "mouse") hovered = false;
+  });
+  stage.addEventListener("focus", () => pause(8000));
+  $("[data-gallery-prev]")?.addEventListener("click", () => goTo(frontIndex() - 1));
+  $("[data-gallery-next]")?.addEventListener("click", () => goTo(frontIndex() + 1));
+
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver((entries) => {
+      inView = entries[0].isIntersecting;
+      if (inView) start();
+    }).observe(stage);
+  } else {
+    inView = true;
+  }
+  window.addEventListener("resize", layout);
+  document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && inView && start());
+  layout();
+  start();
+})();
+
 /* ---------- Animated accordions ---------- */
 function setupAccordion(items) {
   items.forEach((details) => {

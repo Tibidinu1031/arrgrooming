@@ -40,6 +40,7 @@ Din panou clientul poate modifica, fără cod:
 
 - anunțul de sus (o bandă roz pentru concedii sau oferte);
 - textele și imaginea din prima pagină (imaginile se micșorează și se convertesc automat);
+- galeria foto din secțiunea Despre noi: un raft 3D cu cartonașe care se rotesc (tragere, butoane, săgeți, click pe un cartonaș). Cartonașele fără poză afișează „Coming Soon”; pozele se încarcă din panou, cartonaș cu cartonaș;
 - secțiunile Despre noi, Servicii (adăugare, ștergere, ordine, durate în calendar), Cum funcționează, TikTok, Recenzii și Întrebări frecvente;
 - programul pe zile, zilele libere și regulile calendarului;
 - telefonul, adresa, linkurile de hartă și rețelele sociale (actualizate peste tot pe site);

@@ -209,7 +209,11 @@ async function loadSite() {
   state.originalJson = JSON.stringify(content);
   state.uploads = [];
 }
-const isDirty = () => state.uploads.length > 0 || JSON.stringify(state.content) !== state.originalJson;
+const pendingUploads = () => {
+  const json = JSON.stringify(state.content || {});
+  return state.uploads.filter((upload) => json.includes(upload.path));
+};
+const isDirty = () => pendingUploads().length > 0 || JSON.stringify(state.content) !== state.originalJson;
 function changed() {
   const dirty = isDirty();
   document.body.classList.toggle("is-dirty", dirty);
@@ -569,11 +573,11 @@ function renderHero() {
   ];
 }
 
-async function prepareImage(file) {
+async function prepareImage(file, { maxWidth = 1100, maxHeight = 1400, prefix = "hero" } = {}) {
   if (!/^image\/(png|jpeg|webp)$/.test(file.type)) throw new Error("Alege o imagine PNG, JPG sau WebP.");
   if (file.size > 15 * 1024 * 1024) throw new Error("Imaginea este prea mare (maximum 15 MB).");
   const bitmap = await createImageBitmap(file);
-  const scale = Math.min(1, 1400 / bitmap.height, 1100 / bitmap.width);
+  const scale = Math.min(1, maxHeight / bitmap.height, maxWidth / bitmap.width);
   const width = Math.round(bitmap.width * scale);
   const height = Math.round(bitmap.height * scale);
   const canvas = document.createElement("canvas");
@@ -594,7 +598,53 @@ async function prepareImage(file) {
     reader.onload = () => resolve(reader.result);
     reader.readAsDataURL(blob);
   });
-  return { path: `assets/uploads/hero-${Date.now()}.${extension}`, base64: bytesToB64(bytes), dataUrl, width, height };
+  return { path: `assets/uploads/${prefix}-${Date.now()}.${extension}`, base64: bytesToB64(bytes), dataUrl, width, height };
+}
+
+function galleryImageField(path, item, retitle = () => {}) {
+  const box = el("div", { class: "fld fld-wide gallery-field" });
+  const fileInput = el("input", { type: "file", accept: "image/png,image/webp,image/jpeg", class: "visually-hidden" });
+  if (!fileInput.id) fileInput.id = `f-${++uid}`;
+  const draw = () => {
+    const pending = state.uploads.find((upload) => upload.path === item.image);
+    const thumb = item.image
+      ? el("img", { class: "gallery-thumb", src: pending?.dataUrl || `../${item.image}`, alt: "" })
+      : el("span", { class: "gallery-thumb soon" }, el("strong", { text: "Coming Soon" }));
+    const remove = item.image
+      ? el("button", { type: "button", class: "btn btn-ghost btn-small", onClick: () => {
+          state.uploads = state.uploads.filter((upload) => upload.path !== item.image);
+          item.image = "";
+          changed();
+          draw();
+          retitle();
+        } }, "Scoate poza")
+      : null;
+    box.replaceChildren(
+      el("p", { class: "fld-label", text: "Poza" }),
+      el("div", { class: "gallery-field-row" }, thumb, el("div", { class: "actions" }, el("label", { class: "btn btn-primary btn-small", for: fileInput.id }, icon("a-upload"), item.image ? "Schimbă poza" : "Încarcă o poză"), remove)),
+      el("p", { class: "fld-hint", text: "Fără poză, cartonașul afișează „Coming Soon”. Cel mai bine arată pozele verticale." }),
+      fileInput,
+    );
+  };
+  fileInput.addEventListener("change", async () => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
+    try {
+      const upload = await prepareImage(file, { maxWidth: 900, maxHeight: 1125, prefix: "galerie" });
+      state.uploads = state.uploads.filter((existing) => existing.path !== item.image);
+      state.uploads.push(upload);
+      item.image = upload.path;
+      changed();
+      draw();
+      retitle();
+      toast("Poza a fost pregătită. Apasă Previzualizează ca s-o vezi pe raft.");
+    } catch (error) {
+      toast(error.message, "error");
+    }
+    fileInput.value = "";
+  });
+  draw();
+  return box;
 }
 
 function renderAbout() {
@@ -608,6 +658,22 @@ function renderAbout() {
         text("about.groomerName", "Numele groomerului", { max: 30 }),
         text("about.groomerRole", "Descriere groomer", { max: 110 }),
       ),
+    ),
+    card("Galerie foto (raftul 3D)", "Cartonașele se rotesc ca un raft. Cele fără poză afișează „Coming Soon” până încarci una.",
+      grid(text("gallery.title", "Titlu", { max: 50 }), text("gallery.text", "Text explicativ", { multiline: 2, max: 180 })),
+      listEditor({
+        path: "gallery.items",
+        min: 3,
+        max: 12,
+        addLabel: "Adaugă un cartonaș",
+        itemTitle: (item) => `${item.label || "Cartonaș"}${item.image ? "" : " · Coming Soon"}`,
+        create: () => ({ label: "Poză nouă", image: "", alt: "" }),
+        renderItem: (path, item, retitle) => [
+          text(`${path}.label`, "Eticheta de pe cartonaș", { max: 30, onInput: retitle }),
+          text(`${path}.alt`, "Descrierea pozei (pentru Google)", { max: 120 }),
+          galleryImageField(path, item, retitle),
+        ],
+      }),
     ),
     card("Cifrele din dreapta", "Trei casete cu numere care se animă când apar pe ecran.",
       listEditor({
@@ -1150,7 +1216,7 @@ function openPreview() {
 
 function changedSections() {
   const before = JSON.parse(state.originalJson);
-  const names = { announcement: "Anunț", hero: "Prima pagină", about: "Despre noi", services: "Servicii", servicesSection: "Servicii", marquee: "Servicii", process: "Cum funcționează", hours: "Program", closedDates: "Zile libere", booking: "Programări", contact: "Contact", social: "TikTok", reviews: "Recenzii", faq: "Întrebări", contactSection: "Contact", footer: "Subsol", seo: "Google" };
+  const names = { announcement: "Anunț", hero: "Prima pagină", about: "Despre noi", gallery: "Galerie", services: "Servicii", servicesSection: "Servicii", marquee: "Servicii", process: "Cum funcționează", hours: "Program", closedDates: "Zile libere", booking: "Programări", contact: "Contact", social: "TikTok", reviews: "Recenzii", faq: "Întrebări", contactSection: "Contact", footer: "Subsol", seo: "Google" };
   const list = Object.keys(names).filter((key) => JSON.stringify(before[key]) !== JSON.stringify(state.content[key])).map((key) => names[key]);
   return [...new Set(list)];
 }
@@ -1172,8 +1238,9 @@ async function publish() {
   button.disabled = true;
   button.textContent = "Se publică…";
   try {
-    for (const upload of state.uploads) {
-      await putFile(upload.path, upload.base64, "Panou de administrare: imagine nouă în prima pagină");
+    for (const upload of pendingUploads()) {
+      const where = upload.path.includes("/galerie-") ? "în galerie" : "în prima pagină";
+      await putFile(upload.path, upload.base64, `Panou de administrare: imagine nouă ${where}`);
     }
     const latest = await getFile("index.html");
     const latestContent = readContent(new DOMParser().parseFromString(latest.text, "text/html"));

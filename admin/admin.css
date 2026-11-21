@@ -621,7 +621,15 @@ div.note {
 .card-body {
   padding: 18px 24px 24px;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
+}
+.card-body > *,
+.list,
+.list-item,
+.list-body,
+.content > * {
+  min-width: 0;
 }
 .hello {
   display: flex;
@@ -804,6 +812,31 @@ div.note {
   display: grid;
   gap: 12px;
   justify-items: start;
+}
+.gallery-field-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.gallery-thumb {
+  width: 84px;
+  height: 106px;
+  flex: none;
+  border-radius: 14px;
+  object-fit: cover;
+  border: 1.5px solid var(--line);
+}
+.gallery-thumb.soon {
+  display: grid;
+  place-items: center;
+  padding: 6px;
+  text-align: center;
+  background: linear-gradient(160deg, #f789c0, #e64c9c);
+  color: var(--night);
+  font-family: var(--display);
+  font-size: 0.78rem;
+  line-height: 1.1;
 }
 .durations {
   padding: 14px;
