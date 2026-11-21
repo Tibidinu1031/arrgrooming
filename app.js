@@ -447,10 +447,27 @@ if (reducedMotion.matches) {
   let moved = 0;
   let pausedUntil = 0;
   let inView = false;
-  let hovered = false;
+  let wasHovered = false;
+  let mouse = null;
+  // Hovering pauses the shelf only until the visitor clicks or drags it. After that it turns
+  // again on its own even if the mouse stays on it; hover pausing comes back once the mouse
+  // has left the shelf.
+  let hoverPauses = true;
   let frame = 0;
   let lastFrame = 0;
-  const pause = (ms = 6000) => (pausedUntil = performance.now() + ms);
+  // After a click, tap, drag or button press the chosen card stays in front for a moment,
+  // then the shelf starts turning again on its own.
+  const RESUME_AFTER_SETTLE = 2600;
+  const RESUME_AFTER_HOVER = 900;
+  const pause = (ms = 1500) => (pausedUntil = Math.max(pausedUntil, performance.now() + ms));
+  // Hover is computed from the last mouse position, so it also ends when the page scrolls
+  // the shelf away from a mouse that stays still (no pointerleave fires in that case).
+  const isHovered = () => {
+    if (!mouse) return false;
+    const box = stage.getBoundingClientRect();
+    return mouse.x >= box.left && mouse.x <= box.right && mouse.y >= box.top && mouse.y <= box.bottom;
+  };
+  const keyboardFocused = () => document.activeElement === stage && stage.matches(":focus-visible");
   const frontIndex = () => (((Math.round(-rotation / step) % count) + count) % count);
   const nearest = () => Math.round(rotation / step) * step;
 
@@ -476,11 +493,18 @@ if (reducedMotion.matches) {
     const dt = Math.min(48, now - (lastFrame || now));
     lastFrame = now;
     let busy = dragging;
+    const pointerInside = isHovered();
+    if (!pointerInside) hoverPauses = true;
+    const hovered = pointerInside && hoverPauses;
+    if (hovered && !wasHovered && !dragging && target === null && Math.abs(velocity) <= 0.03) target = nearest();
+    if (!hovered && wasHovered) pausedUntil = Math.max(pausedUntil, now + RESUME_AFTER_HOVER);
+    wasHovered = hovered;
     if (!dragging && target !== null) {
       const diff = target - rotation;
       if (Math.abs(diff) < 0.04) {
         rotation = target;
         target = null;
+        pausedUntil = Math.max(pausedUntil, now + RESUME_AFTER_SETTLE);
       } else {
         rotation += diff * Math.min(1, dt / 110);
         busy = true;
@@ -493,7 +517,7 @@ if (reducedMotion.matches) {
         target = nearest();
       }
       busy = true;
-    } else if (!dragging && !reducedMotion.matches && inView && !hovered && now > pausedUntil && document.visibilityState === "visible") {
+    } else if (!dragging && !reducedMotion.matches && inView && !hovered && !keyboardFocused() && now > pausedUntil && document.visibilityState === "visible") {
       rotation -= dt * 0.0065;
       busy = true;
     }
@@ -523,6 +547,7 @@ if (reducedMotion.matches) {
 
   stage.addEventListener("pointerdown", (event) => {
     if (event.button !== 0) return;
+    hoverPauses = false;
     dragging = true;
     pointerId = event.pointerId;
     downCard = event.target.closest(".g-card");
@@ -531,7 +556,9 @@ if (reducedMotion.matches) {
     moved = 0;
     velocity = 0;
     target = null;
-    stage.setPointerCapture(event.pointerId);
+    try {
+      stage.setPointerCapture(event.pointerId);
+    } catch {}
     stage.classList.add("is-dragging");
     pause();
     start();
@@ -576,6 +603,7 @@ if (reducedMotion.matches) {
     (event) => {
       if (Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return;
       event.preventDefault();
+      hoverPauses = false;
       rotation -= event.deltaX * 0.18;
       target = null;
       velocity = 0;
@@ -597,18 +625,15 @@ if (reducedMotion.matches) {
     else return;
     event.preventDefault();
   });
-  stage.addEventListener("pointerenter", (event) => {
-    if (event.pointerType !== "mouse") return;
-    hovered = true;
-    if (!dragging && velocity === 0) {
-      target = nearest();
-      start();
-    }
-  });
-  stage.addEventListener("pointerleave", (event) => {
-    if (event.pointerType === "mouse") hovered = false;
-  });
-  stage.addEventListener("focus", () => pause(8000));
+  window.addEventListener(
+    "pointermove",
+    (event) => {
+      if (event.pointerType === "mouse") mouse = { x: event.clientX, y: event.clientY };
+    },
+    { passive: true },
+  );
+  document.documentElement.addEventListener("mouseleave", () => (mouse = null));
+  stage.addEventListener("blur", () => pause(RESUME_AFTER_HOVER));
   $("[data-gallery-prev]")?.addEventListener("click", () => goTo(frontIndex() - 1));
   $("[data-gallery-next]")?.addEventListener("click", () => goTo(frontIndex() + 1));
 
