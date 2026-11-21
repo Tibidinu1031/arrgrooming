@@ -11,7 +11,7 @@ import {
   safeUrl,
   serializeDocument,
   summarizeHours,
-} from "./render.js";
+} from "./render.js?v=20261121";
 
 /* ---------------------------------------------------------------------------
    Configurare

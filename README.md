@@ -64,6 +64,7 @@ Tokenul se salvează în `admin/auth.json` criptat cu AES-GCM, cu o cheie deriva
 - Textele editabile sunt marcate în `index.html` cu atribute `data-cms`, `data-cms-tpl`, `data-cms-lines`, `data-cms-list` și `data-link`. Toate datele sunt în blocul `<script type="application/json" id="site-content">` de la finalul paginii.
 - `admin/render.js` aplică datele peste HTML; `app.js` citește același bloc pentru calendar, program și zilele libere. Site-ul public rămâne HTML static: nimic nu se generează în browserul vizitatorilor.
 - Panoul publică pornind de la ultima versiune a `index.html` din GitHub, deci modificările de cod din `index.html` se păstrează. Nu edita manual blocul `site-content` decât cu JSON valid.
+- Fișierele CSS și JS sunt incluse cu `?v=AAAALLZZ` (în `index.html`, `admin/index.html` și importul din `admin/admin.js`). GitHub Pages le ține în cache aproximativ 10 minute, așa că schimbă valoarea la fiecare modificare de cod.
 - Doar pe `localhost`, panoul acceptă `?api=` (un API GitHub de test) și `?auth=` (alt fișier de autentificare), pentru teste locale.
 
 ## Conținut și surse
