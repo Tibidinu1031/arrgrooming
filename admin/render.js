@@ -25,6 +25,7 @@ export const DEFAULT_HERO_IMAGE = "assets/hero-dog.webp";
 export const esc = (value) =>
   String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const pad2 = (n) => String(n).padStart(2, "0");
+const textOr = (value, fallback) => (typeof value === "string" && value.trim() ? value : fallback);
 
 export function get(object, path) {
   return path.split(".").reduce((value, key) => (value == null ? undefined : value[key]), object);
@@ -154,7 +155,7 @@ const LISTS = {
               <p>${esc(service.description)}</p>${
                 service.bookable
                   ? `
-              <button class="text-link" type="button" data-pick-service="${esc(service.id)}">Alege acest serviciu <svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg></button>`
+              <button class="text-link" type="button" data-pick-service="${esc(service.id)}">${esc(textOr(content.servicesSection?.pickLabel, "Alege acest serviciu"))} <svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg></button>`
                   : ""
               }
             </div>
@@ -179,7 +180,7 @@ const LISTS = {
         (step, index) => `
           <li class="step" data-reveal>
             <span class="step-icon" aria-hidden="true">${icon(STEP_ICONS[index % STEP_ICONS.length])}</span>
-            <span class="step-num">Pasul ${index + 1}</span>
+            <span class="step-num">${esc(textOr(content.process?.stepWord, "Pasul"))} ${index + 1}</span>
             <h3>${esc(step.title)}</h3>
             <p>${esc(step.text)}</p>
           </li>`,
@@ -211,7 +212,7 @@ const LISTS = {
           <a class="reel tilt" data-reveal href="${esc(reel.url)}" target="_blank" rel="noopener" style="--a: ${COLORS[reel.colorA] || COLORS.pink}; --b: ${COLORS[reel.colorB] || COLORS.sky}">
             <span class="reel-art" aria-hidden="true">${icon(reel.icon || "i-sparkle")}</span>
             <span class="reel-play" aria-hidden="true">${icon("i-play")}</span>
-            <span class="reel-meta"><small>Video TikTok</small><strong>${esc(reel.title)}</strong><span>${esc(reel.subtitle)}</span></span>
+            <span class="reel-meta"><small>${esc(textOr(content.social?.reelLabel, "Video TikTok"))}</small><strong>${esc(reel.title)}</strong><span>${esc(reel.subtitle)}</span></span>
           </a>`,
       )
       .join("");
@@ -233,7 +234,7 @@ const LISTS = {
       .map((item, index) => {
         const front = item.image
           ? `<img src="${esc(item.image)}" alt="${esc(item.alt || item.label)}" loading="lazy" decoding="async" draggable="false" />`
-          : `<div class="g-soon"><span class="g-soon-icon" aria-hidden="true">${icon("i-camera")}</span><strong>Coming Soon</strong><span>Poze din salon, în curând</span></div>`;
+          : `<div class="g-soon"><span class="g-soon-icon" aria-hidden="true">${icon("i-camera")}</span><strong>${esc(textOr(content.gallery?.soonTitle, "Coming Soon"))}</strong><span>${esc(textOr(content.gallery?.soonText, "Poze din salon, în curând"))}</span></div>`;
         return `
           <figure class="g-card${item.image ? " has-image" : ""}" data-index="${index}">
             <div class="g-face g-front">
@@ -250,7 +251,7 @@ const LISTS = {
     return DAY_ORDER.map((day) => {
       const item = map[day] || { closed: true };
       return `
-                <div data-day="${day}"><span>${DAY_LONG[day]}</span><strong>${item.closed ? "Închis" : `${esc(item.open)} - ${esc(item.close)}`}</strong></div>`;
+                <div data-day="${day}"><span>${DAY_LONG[day]}</span><strong>${item.closed ? esc(textOr(content.contactSection?.closedLabel, "Închis")) : `${esc(item.open)} - ${esc(item.close)}`}</strong></div>`;
     }).join("");
   },
 };
@@ -329,6 +330,10 @@ export function renderDocument(doc, content) {
   });
   doc.querySelectorAll("[data-cms-tpl]").forEach((element) => {
     element.textContent = fill(element.getAttribute("data-cms-tpl"), context);
+  });
+  doc.querySelectorAll("[data-cms-placeholder]").forEach((element) => {
+    const value = get(context, element.getAttribute("data-cms-placeholder"));
+    if (typeof value === "string") element.setAttribute("placeholder", value);
   });
   doc.querySelectorAll("[data-cms-aria]").forEach((element) => {
     element.setAttribute("aria-label", fill(element.getAttribute("data-cms-aria"), context));

@@ -26,8 +26,8 @@
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
     <link rel="preload" as="image" href="assets/hero-dog.webp" imagesrcset="assets/hero-dog-sm.webp 400w, assets/hero-dog.webp 665w" imagesizes="(max-width: 1023px) 40vw, 26vw" />
     <link rel="stylesheet" href="fonts.css?v=20261123" />
-    <link rel="stylesheet" href="styles.css?v=20261123" />
-    <script src="app.js?v=20261123" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20261123b" />
+    <script src="app.js?v=20261123b" defer></script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -121,16 +121,16 @@
       <a class="brand" href="#main" aria-label="Arr Grooming Salon, începutul paginii">
         <img class="brand-mark" src="assets/logo-mark.svg" alt="" width="52" height="52" />
         <span class="brand-text">
-          <span class="brand-name">Arr <span>Grooming</span></span>
-          <small>SALON · CÂINI &amp; PISICI</small>
+          <span class="brand-name"><span data-cms="header.brandMain">Arr</span> <span class="brand-accent" data-cms="header.brandAccent">Grooming</span></span>
+          <small data-cms="header.brandTagline">SALON · CÂINI &amp; PISICI</small>
         </span>
       </a>
       <nav id="navigation" aria-label="Navigare principală">
-        <a href="#despre">Despre</a>
-        <a href="#servicii">Servicii</a>
-        <a href="#programari">Programări</a>
-        <a href="#recenzii">Recenzii</a>
-        <a href="#contact">Contact</a>
+        <a href="#despre" data-cms="header.navAbout">Despre</a>
+        <a href="#servicii" data-cms="header.navServices">Servicii</a>
+        <a href="#programari" data-cms="header.navBooking">Programări</a>
+        <a href="#recenzii" data-cms="header.navReviews">Recenzii</a>
+        <a href="#contact" data-cms="header.navContact">Contact</a>
         <div class="nav-extra">
           <a class="nav-phone" data-link="tel" href="tel:+40744134819"><svg class="icon" aria-hidden="true"><use href="#i-phone" /></svg><span data-cms="contact.phoneDisplay">0744 134 819</span></a>
           <div class="nav-socials">
@@ -141,7 +141,7 @@
         </div>
       </nav>
       <div class="header-actions">
-        <a class="button compact" href="#programari">Programează-te <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg></a>
+        <a class="button compact" href="#programari"><span data-cms="header.cta">Programează-te</span> <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg></a>
         <button class="menu-toggle" type="button" aria-controls="navigation" aria-expanded="false" aria-label="Deschide meniul">
           <span></span><span></span>
         </button>
@@ -167,13 +167,13 @@
             <a class="button magnetic" href="#programari"><span data-cms="hero.button">Programează online</span> <svg class="icon" aria-hidden="true"><use href="#i-calendar" /></svg></a>
             <a class="hero-phone" data-link="tel" href="tel:+40744134819" data-cms-aria="Sună la {contact.phoneDisplay}" aria-label="Sună la 0744 134 819">
               <span class="hero-phone-icon"><svg class="icon" aria-hidden="true"><use href="#i-phone" /></svg></span>
-              <span class="hero-phone-text"><small>Sau sună-ne</small><span data-cms="contact.phoneDisplay">0744 134 819</span></span>
+              <span class="hero-phone-text"><small data-cms="hero.callSmall">Sau sună-ne</small><span data-cms="contact.phoneDisplay">0744 134 819</span></span>
             </a>
           </div>
           <div class="hero-foot">
             <a class="rating" data-link="maps" href="https://maps.google.com/?cid=6354732514170197996" target="_blank" rel="noopener">
               <span class="stars" aria-hidden="true"><svg class="icon"><use href="#i-star" /></svg><svg class="icon"><use href="#i-star" /></svg><svg class="icon"><use href="#i-star" /></svg><svg class="icon"><use href="#i-star" /></svg><svg class="icon"><use href="#i-star" /></svg></span>
-              <span><strong data-cms-tpl="{reviews.score} pe Google">5,0 pe Google</strong><small>notă primită de la clienți</small></span>
+              <span><strong data-cms-tpl="{reviews.score} {hero.ratingSuffix}">5,0 pe Google</strong><small data-cms="hero.ratingSmall">notă primită de la clienți</small></span>
             </a>
             <span class="hero-foot-sep" aria-hidden="true"></span>
             <div class="socials" aria-label="Rețele sociale">
@@ -230,7 +230,7 @@
             <svg class="hv-badge-ring" viewBox="0 0 120 120">
               <defs><path id="badge-ring" d="M60 60m-45 0a45 45 0 1 1 90 0a45 45 0 1 1-90 0" /></defs>
               <circle cx="60" cy="60" r="59" />
-              <text><textPath href="#badge-ring" textLength="278" lengthAdjust="spacing">RĂSFĂȚ PENTRU BLĂNOȘI · GALAȚI ·</textPath></text>
+              <text><textPath href="#badge-ring" textLength="278" lengthAdjust="spacing" data-cms="hero.badgeText">RĂSFĂȚ PENTRU BLĂNOȘI · GALAȚI ·</textPath></text>
             </svg>
             <span class="hv-badge-center"><svg class="icon"><use href="#i-clipper" /></svg></span>
           </div>
@@ -282,7 +282,7 @@
       </div>
 
       <section class="about section-wrap" id="despre" aria-labelledby="about-title">
-        <div class="section-label"><span>Despre noi</span><span data-cms="contact.landmark">Lângă Salonul Ciufulix</span></div>
+        <div class="section-label"><span data-cms="about.label">Despre noi</span><span data-cms="contact.landmark">Lângă Salonul Ciufulix</span></div>
         <div class="about-grid">
           <div class="about-copy" data-reveal>
             <h2 id="about-title"><span data-cms="about.title">Răsfăț pentru blănoși.</span><br /><span class="muted" data-cms="about.titleMuted">Cu răbdare, nu cu grabă.</span></h2>
@@ -295,7 +295,7 @@
                 <small data-cms="about.groomerRole">Groomer · te ajută să alegi tunsoarea potrivită pentru rasa și blănița lui</small>
               </span>
             </div>
-            <a class="text-link" href="#servicii">Vezi ce facem pentru ei <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg></a>
+            <a class="text-link" href="#servicii"><span data-cms="about.link">Vezi ce facem pentru ei</span> <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg></a>
           </div>
           <div class="about-side">
             <div class="about-art tilt" data-reveal aria-hidden="true">
@@ -306,7 +306,7 @@
               <span class="art-tool t3"><svg class="icon"><use href="#i-clipper" /></svg></span>
               <span class="art-tool t4"><svg class="icon"><use href="#i-bath" /></svg></span>
               <img class="art-logo" src="assets/logo-mark.svg" alt="" width="180" height="180" />
-              <span class="art-caption">Fiecare blăniță<br />merită răsfăț.</span>
+              <span class="art-caption"><span data-cms="about.artCaption1">Fiecare blăniță</span><br /><span data-cms="about.artCaption2">merită răsfăț.</span></span>
             </div>
             <div class="stats" data-cms-list="stats">
               <div class="stat" data-reveal>
@@ -328,7 +328,7 @@
         <div class="gallery" data-reveal>
           <div class="gallery-head">
             <div class="gallery-intro">
-              <p class="eyebrow"><svg class="icon" aria-hidden="true"><use href="#i-camera" /></svg>Galerie foto</p>
+              <p class="eyebrow"><svg class="icon" aria-hidden="true"><use href="#i-camera" /></svg><span data-cms="gallery.eyebrow">Galerie foto</span></p>
               <h3 data-cms="gallery.title">Poze ale salonului</h3>
               <p data-cms="gallery.text">Trage cu degetul sau cu mouse-ul ca să învârți raftul. Pozele din salon apar aici în curând.</p>
             </div>
@@ -413,13 +413,13 @@
             </div>
             <div class="gallery-floor" aria-hidden="true"></div>
           </div>
-          <p class="gallery-hint" aria-hidden="true"><svg class="icon"><use href="#i-left" /></svg>Trage ca să învârți raftul<svg class="icon"><use href="#i-right" /></svg></p>
+          <p class="gallery-hint" aria-hidden="true"><svg class="icon"><use href="#i-left" /></svg><span data-cms="gallery.hint">Trage ca să învârți raftul</span><svg class="icon"><use href="#i-right" /></svg></p>
         </div>
       </section>
 
       <section class="services section-wrap" id="servicii" aria-labelledby="services-title">
         <div class="services-deco" aria-hidden="true"><span class="sd-dots"></span><span class="sd-line"></span></div>
-        <div class="section-label light"><span>Servicii</span><span>Prețuri accesibile</span></div>
+        <div class="section-label light"><span data-cms="servicesSection.label">Servicii</span><span data-cms="servicesSection.sideLabel">Prețuri accesibile</span></div>
         <div class="section-heading" data-reveal>
           <h2 id="services-title"><span data-cms="servicesSection.title">Tot ce-i trebuie unei blănițe.</span><br /><em data-cms="servicesSection.accent">Într-un singur loc.</em></h2>
           <p data-cms="servicesSection.text">Prețul și durata depind de talie, rasă și starea blăniței. Ți le spunem înainte, ca să nu ai surprize.</p>
@@ -507,10 +507,10 @@
       </section>
 
       <section class="process section-wrap" id="proces" aria-labelledby="process-title">
-        <div class="section-label"><span>Cum funcționează</span><span>4 pași simpli</span></div>
+        <div class="section-label"><span data-cms="process.label">Cum funcționează</span><span data-cms="process.sideLabel">4 pași simpli</span></div>
         <div class="section-heading" data-reveal>
           <h2 id="process-title"><span data-cms="process.title">De la programare</span><br /><em data-cms="process.accent">la blăniță pufoasă.</em></h2>
-          <a class="text-link" href="#programari">Începe programarea <svg class="icon" aria-hidden="true"><use href="#i-down" /></svg></a>
+          <a class="text-link" href="#programari"><span data-cms="process.link">Începe programarea</span> <svg class="icon" aria-hidden="true"><use href="#i-down" /></svg></a>
         </div>
         <ol class="steps" data-cms-list="steps">
           <li class="step" data-reveal>
@@ -542,7 +542,7 @@
 
       <section class="booking section-wrap" id="programari" aria-labelledby="booking-title">
         <div class="booking-deco" aria-hidden="true"></div>
-        <div class="section-label"><span>Programări online</span><span>Confirmăm telefonic</span></div>
+        <div class="section-label"><span data-cms="booking.label">Programări online</span><span data-cms="booking.sideLabel">Confirmăm telefonic</span></div>
         <div class="section-heading" data-reveal>
           <h2 id="booking-title"><span data-cms="booking.title">Alege ziua și ora.</span><br /><em data-cms="booking.accent">Noi pregătim prosopul.</em></h2>
           <p data-cms="booking.text">Completezi în mai puțin de un minut. Cererea ajunge direct la salon, iar noi te sunăm să confirmăm.</p>
@@ -551,34 +551,34 @@
         <form class="booker" id="booker" novalidate>
           <div class="booker-steps">
             <fieldset class="bstep" id="step-pet">
-              <legend><span class="bstep-num">1</span>Pentru cine este programarea?</legend>
+              <legend><span class="bstep-num">1</span><span data-cms="booking.form.step1">Pentru cine este programarea?</span></legend>
               <div class="pet-switch">
                 <label class="pet-option">
                   <input type="radio" name="pet" value="dog" checked />
-                  <span><svg class="icon" aria-hidden="true"><use href="#i-dog" /></svg>Câine</span>
+                  <span><svg class="icon" aria-hidden="true"><use href="#i-dog" /></svg><span data-cms="booking.form.dog">Câine</span></span>
                 </label>
                 <label class="pet-option">
                   <input type="radio" name="pet" value="cat" />
-                  <span><svg class="icon" aria-hidden="true"><use href="#i-cat" /></svg>Pisică</span>
+                  <span><svg class="icon" aria-hidden="true"><use href="#i-cat" /></svg><span data-cms="booking.form.cat">Pisică</span></span>
                 </label>
               </div>
               <div class="size-group" id="size-group">
-                <p class="field-label" id="size-label">Talia câinelui</p>
+                <p class="field-label" id="size-label" data-cms="booking.form.sizeLabel">Talia câinelui</p>
                 <div class="chips" role="radiogroup" aria-labelledby="size-label">
-                  <label class="chip"><input type="radio" name="size" value="small" checked /><span>Mică<small>până la 10 kg</small></span></label>
-                  <label class="chip"><input type="radio" name="size" value="medium" /><span>Medie<small>10 - 25 kg</small></span></label>
-                  <label class="chip"><input type="radio" name="size" value="large" /><span>Mare<small>peste 25 kg</small></span></label>
+                  <label class="chip"><input type="radio" name="size" value="small" checked /><span><span data-cms="booking.form.small">Mică</span><small data-cms="booking.form.smallHint">până la 10 kg</small></span></label>
+                  <label class="chip"><input type="radio" name="size" value="medium" /><span><span data-cms="booking.form.medium">Medie</span><small data-cms="booking.form.mediumHint">10 - 25 kg</small></span></label>
+                  <label class="chip"><input type="radio" name="size" value="large" /><span><span data-cms="booking.form.large">Mare</span><small data-cms="booking.form.largeHint">peste 25 kg</small></span></label>
                 </div>
               </div>
             </fieldset>
 
             <fieldset class="bstep" id="step-service">
-              <legend><span class="bstep-num">2</span>Ce serviciu dorești?</legend>
+              <legend><span class="bstep-num">2</span><span data-cms="booking.form.step2">Ce serviciu dorești?</span></legend>
               <div class="service-options" id="service-options"></div>
             </fieldset>
 
             <fieldset class="bstep" id="step-date">
-              <legend><span class="bstep-num">3</span>Alege ziua și ora</legend>
+              <legend><span class="bstep-num">3</span><span data-cms="booking.form.step3">Alege ziua și ora</span></legend>
               <div class="calendar-wrap">
                 <div class="calendar">
                   <div class="cal-head">
@@ -603,38 +603,38 @@
                   <p class="cal-note" id="cal-note" aria-live="polite">Duminica salonul este închis.</p>
                 </div>
                 <div class="slots" id="slots">
-                  <p class="slots-title" id="slots-title">Alege o zi din calendar</p>
-                  <p class="slots-sub" id="slots-sub">Îți arătăm orele potrivite pentru durata serviciului ales.</p>
+                  <p class="slots-title" id="slots-title" data-cms="booking.messages.pickDay">Alege o zi din calendar</p>
+                  <p class="slots-sub" id="slots-sub" data-cms="booking.messages.pickDaySub">Îți arătăm orele potrivite pentru durata serviciului ales.</p>
                   <div class="slot-groups" id="slot-groups" role="radiogroup" aria-labelledby="slots-title"></div>
                 </div>
               </div>
             </fieldset>
 
             <fieldset class="bstep" id="step-details">
-              <legend><span class="bstep-num">4</span>Datele tale</legend>
+              <legend><span class="bstep-num">4</span><span data-cms="booking.form.step4">Datele tale</span></legend>
               <div class="fields">
                 <div class="field">
-                  <label for="f-name">Numele tău</label>
+                  <label for="f-name" data-cms="booking.form.name">Numele tău</label>
                   <input id="f-name" name="name" type="text" autocomplete="name" required aria-describedby="e-name" />
                   <p class="field-error" id="e-name"></p>
                 </div>
                 <div class="field">
-                  <label for="f-phone">Telefon</label>
-                  <input id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="07xx xxx xxx" required aria-describedby="e-phone" />
+                  <label for="f-phone" data-cms="booking.form.phone">Telefon</label>
+                  <input id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="07xx xxx xxx" data-cms-placeholder="booking.form.phonePlaceholder" required aria-describedby="e-phone" />
                   <p class="field-error" id="e-phone"></p>
                 </div>
                 <div class="field">
-                  <label for="f-petname">Numele blănosului</label>
+                  <label for="f-petname" data-cms="booking.form.petName">Numele blănosului</label>
                   <input id="f-petname" name="petName" type="text" required aria-describedby="e-petname" />
                   <p class="field-error" id="e-petname"></p>
                 </div>
                 <div class="field">
-                  <label for="f-breed">Rasa <span class="optional">(opțional)</span></label>
+                  <label for="f-breed"><span data-cms="booking.form.breed">Rasa</span> <span class="optional" data-cms="booking.form.optional">(opțional)</span></label>
                   <input id="f-breed" name="breed" type="text" />
                 </div>
                 <div class="field field-wide">
-                  <label for="f-notes">Observații <span class="optional">(opțional)</span></label>
-                  <textarea id="f-notes" name="notes" rows="3" placeholder="Ex.: blăniță încâlcită, sensibil la urechi, tunsoarea dorită"></textarea>
+                  <label for="f-notes"><span data-cms="booking.form.notes">Observații</span> <span class="optional" data-cms="booking.form.optional">(opțional)</span></label>
+                  <textarea id="f-notes" name="notes" rows="3" placeholder="Ex.: blăniță încâlcită, sensibil la urechi, tunsoarea dorită" data-cms-placeholder="booking.form.notesPlaceholder"></textarea>
                 </div>
               </div>
             </fieldset>
@@ -642,20 +642,20 @@
 
           <aside class="booker-summary" aria-labelledby="summary-title">
             <div class="summary-card">
-              <p class="eyebrow">Rezumat</p>
-              <h3 id="summary-title">Programarea ta</h3>
+              <p class="eyebrow" data-cms="booking.summary.eyebrow">Rezumat</p>
+              <h3 id="summary-title" data-cms="booking.summary.title">Programarea ta</h3>
               <dl class="summary-list">
-                <div><dt>Blănos</dt><dd data-sum="pet">Câine, talie mică</dd></div>
-                <div><dt>Serviciu</dt><dd data-sum="service">-</dd></div>
-                <div><dt>Durată estimată</dt><dd data-sum="duration">-</dd></div>
-                <div><dt>Ziua</dt><dd data-sum="date">-</dd></div>
-                <div><dt>Ora</dt><dd data-sum="time">-</dd></div>
+                <div><dt data-cms="booking.summary.pet">Blănos</dt><dd data-sum="pet">Câine, talie mică</dd></div>
+                <div><dt data-cms="booking.summary.service">Serviciu</dt><dd data-sum="service">-</dd></div>
+                <div><dt data-cms="booking.summary.duration">Durată estimată</dt><dd data-sum="duration">-</dd></div>
+                <div><dt data-cms="booking.summary.date">Ziua</dt><dd data-sum="date">-</dd></div>
+                <div><dt data-cms="booking.summary.time">Ora</dt><dd data-sum="time">-</dd></div>
               </dl>
               <div class="summary-progress" aria-hidden="true"><span></span></div>
               <p class="summary-hint" id="summary-hint" aria-live="polite">Mai ai de ales: serviciul, ziua și ora.</p>
-              <button type="submit" class="button full">Trimite cererea <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg></button>
-              <p class="summary-note">Prețul depinde de talie și blăniță și ți-l spunem la confirmare. Datele nu sunt salvate pe site.</p>
-              <a class="summary-call" data-link="tel" href="tel:+40744134819"><svg class="icon" aria-hidden="true"><use href="#i-phone" /></svg><span>Preferi la telefon? <strong data-cms="contact.phoneDisplay">0744 134 819</strong></span></a>
+              <button type="submit" class="button full"><span data-cms="booking.summary.submit">Trimite cererea</span> <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg></button>
+              <p class="summary-note" data-cms="booking.summary.note">Prețul depinde de talie și blăniță și ți-l spunem la confirmare. Datele nu sunt salvate pe site.</p>
+              <a class="summary-call" data-link="tel" href="tel:+40744134819"><svg class="icon" aria-hidden="true"><use href="#i-phone" /></svg><span><span data-cms="booking.summary.call">Preferi la telefon?</span> <strong data-cms="contact.phoneDisplay">0744 134 819</strong></span></a>
             </div>
           </aside>
         </form>
@@ -663,7 +663,7 @@
 
       <section class="social section-wrap" id="tiktok" aria-labelledby="social-title">
         <div class="social-deco" aria-hidden="true"><span></span><span></span></div>
-        <div class="section-label light"><span>Din salon</span><span data-cms="contact.tiktokHandle">@arrgrooming.salon</span></div>
+        <div class="section-label light"><span data-cms="social.label">Din salon</span><span data-cms="contact.tiktokHandle">@arrgrooming.salon</span></div>
         <div class="section-heading" data-reveal>
           <div>
             <h2 id="social-title"><span data-cms="social.title">Transformări reale,</span><br /><em data-cms="social.accent">pe TikTok.</em></h2>
@@ -671,7 +671,7 @@
           </div>
           <a class="tiktok-big magnetic" data-link="tiktok" href="https://www.tiktok.com/@arrgrooming.salon" target="_blank" rel="noopener">
             <span class="tiktok-big-icon"><svg class="icon" aria-hidden="true"><use href="#i-tiktok" /></svg></span>
-            <span><small>Urmărește-ne pe TikTok</small><strong data-cms="contact.tiktokHandle">@arrgrooming.salon</strong></span>
+            <span><small data-cms="social.followSmall">Urmărește-ne pe TikTok</small><strong data-cms="contact.tiktokHandle">@arrgrooming.salon</strong></span>
             <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg>
           </a>
         </div>
@@ -705,12 +705,12 @@
       </section>
 
       <section class="reviews section-wrap" id="recenzii" aria-labelledby="reviews-title">
-        <div class="section-label"><span>Recenzii</span><span>Întrebări frecvente</span></div>
+        <div class="section-label"><span data-cms="reviews.label">Recenzii</span><span data-cms="reviews.sideLabel">Întrebări frecvente</span></div>
         <div class="reviews-grid">
           <div class="rating-card" data-reveal>
             <h2 id="reviews-title" class="visually-hidden">Recenzii</h2>
             <div class="rating-top">
-              <p class="rating-score"><strong data-cms="reviews.score" data-count="5" data-decimals="1">5,0</strong><span>din 5</span></p>
+              <p class="rating-score"><strong data-cms="reviews.score" data-count="5" data-decimals="1">5,0</strong><span data-cms="reviews.outOf">din 5</span></p>
               <div class="stars big" role="img" aria-label="5 stele din 5">
                 <svg class="icon" aria-hidden="true"><use href="#i-star" /></svg><svg class="icon" aria-hidden="true"><use href="#i-star" /></svg><svg class="icon" aria-hidden="true"><use href="#i-star" /></svg><svg class="icon" aria-hidden="true"><use href="#i-star" /></svg><svg class="icon" aria-hidden="true"><use href="#i-star" /></svg>
               </div>
@@ -721,11 +721,11 @@
               <blockquote><p data-cms-tpl="„{reviews.quote}”">„Recomand! Prețuri accesibile și servicii excepționale!”</p></blockquote>
               <figcaption data-cms="reviews.author">Alina S. · recenzie pe Google</figcaption>
             </figure>
-            <a class="text-link light" data-link="maps" href="https://maps.google.com/?cid=6354732514170197996" target="_blank" rel="noopener">Citește recenziile pe Google <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg></a>
+            <a class="text-link light" data-link="maps" href="https://maps.google.com/?cid=6354732514170197996" target="_blank" rel="noopener"><span data-cms="reviews.link">Citește recenziile pe Google</span> <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg></a>
             <span class="rating-paw" aria-hidden="true"><svg class="icon"><use href="#i-paw" /></svg></span>
           </div>
           <div class="faq" data-reveal>
-            <h2>Întrebări <em>frecvente</em></h2>
+            <h2><span data-cms="reviews.faqTitle">Întrebări</span> <em data-cms="reviews.faqAccent">frecvente</em></h2>
             <div class="faq-list" data-cms-list="faq">
               <details class="faq-item" name="faq" open>
                 <summary>Cât durează o programare?<span class="plus" aria-hidden="true"></span></summary>
@@ -753,7 +753,7 @@
       </section>
 
       <section class="contact section-wrap" id="contact" aria-labelledby="contact-title">
-        <div class="section-label"><span>Contact</span><span data-cms-tpl="{contact.city}, România">Galați, România</span></div>
+        <div class="section-label"><span data-cms="contactSection.label">Contact</span><span data-cms-tpl="{contact.city}, {contact.country}">Galați, România</span></div>
         <div class="contact-grid">
           <div class="contact-main" data-reveal>
             <h2 id="contact-title"><span data-cms="contactSection.title">Hai în vizită.</span><br /><em data-cms="contactSection.accent">Blănosul tău e așteptat.</em></h2>
@@ -777,20 +777,20 @@
                 <path class="m-park" d="M110 150c20-12 60-14 82-2 18 10 16 40-8 50-26 11-66 8-82-8-12-12-6-32 8-40z" />
                 <path class="m-road-big" d="M-10 112C80 100 150 96 210 104s140 20 210 6" />
                 <path class="m-road" d="M245 -10c-8 60-12 120 2 240M60 -10c6 50 8 90 2 122" />
-                <text class="m-label"><textPath href="#m-street" startOffset="8%">Str. 1 Decembrie 1918</textPath></text>
+                <text class="m-label"><textPath href="#m-street" startOffset="8%" data-cms="contact.street">Str. 1 Decembrie 1918</textPath></text>
                 <path id="m-street" d="M-10 104C80 92 150 88 210 96s140 20 210 6" fill="none" />
               </svg>
               <span class="map-pin" aria-hidden="true">
                 <span class="map-pin-ring"></span>
                 <span class="map-pin-head"><img src="assets/logo-mark.svg" alt="" width="34" height="34" /></span>
               </span>
-              <span class="map-open">Deschide în Google Maps <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg></span>
+              <span class="map-open"><span data-cms="contactSection.mapButton">Deschide în Google Maps</span> <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg></span>
             </a>
             <div class="visit-body">
-              <p class="eyebrow">Ne găsești aici</p>
+              <p class="eyebrow" data-cms="contactSection.findUs">Ne găsești aici</p>
               <h3 data-cms-lines="visitAddress">Str. 1 Decembrie 1918 nr. 1<br />Bl. S5C, parter · Galați</h3>
               <p class="landmark"><svg class="icon" aria-hidden="true"><use href="#i-pin" /></svg><span data-cms="contact.landmark">Lângă Salonul Ciufulix</span></p>
-              <a class="text-link" data-link="directions" href="https://www.google.com/maps/dir/?api=1&amp;destination=Arr+Grooming+Salon%2C+Strada+1+Decembrie+1918+1%2C+Gala%C8%9Bi" target="_blank" rel="noopener">Vezi traseul <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg></a>
+              <a class="text-link" data-link="directions" href="https://www.google.com/maps/dir/?api=1&amp;destination=Arr+Grooming+Salon%2C+Strada+1+Decembrie+1918+1%2C+Gala%C8%9Bi" target="_blank" rel="noopener"><span data-cms="contactSection.directions">Vezi traseul</span> <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg></a>
               <p class="open-status" data-open-status><span class="pulse" aria-hidden="true"></span><span data-status-text>Program</span></p>
               <div class="hours" id="hours" data-cms-list="hours">
                 <div data-day="1"><span>Luni</span><strong>09:00 - 18:00</strong></div>
@@ -814,24 +814,24 @@
         <a class="brand brand-light" href="#main" aria-label="Arr Grooming Salon, începutul paginii">
           <img class="brand-mark" src="assets/logo-mark.svg" alt="" width="52" height="52" />
           <span class="brand-text">
-            <span class="brand-name">Arr <span>Grooming</span></span>
-            <small>SALON · CÂINI &amp; PISICI</small>
+            <span class="brand-name"><span data-cms="header.brandMain">Arr</span> <span class="brand-accent" data-cms="header.brandAccent">Grooming</span></span>
+            <small data-cms="header.brandTagline">SALON · CÂINI &amp; PISICI</small>
           </span>
         </a>
         <p class="footer-tag"><span data-cms="footer.tagline">Fiecare blăniță</span> <em data-cms="footer.taglineAccent">merită răsfăț.</em></p>
-        <a class="button light" href="#programari">Programează-te <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg></a>
+        <a class="button light" href="#programari"><span data-cms="header.cta">Programează-te</span> <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg></a>
       </div>
       <div class="footer-cols">
         <div>
-          <h3>Salon</h3>
+          <h3 data-cms="footer.salonHeading">Salon</h3>
           <p data-cms-lines="footerSalon">Str. 1 Decembrie 1918 nr. 1<br />Bl. S5C, parter, Galați<br />Lângă Salonul Ciufulix</p>
         </div>
         <div>
-          <h3>Program</h3>
+          <h3 data-cms="footer.programHeading">Program</h3>
           <p data-cms-lines="footerProgram">Luni - Vineri: 09:00 - 18:00<br />Sâmbătă: 09:00 - 14:00<br />Duminică: închis</p>
         </div>
         <div>
-          <h3>Contact</h3>
+          <h3 data-cms="footer.contactHeading">Contact</h3>
           <p><a data-link="tel" href="tel:+40744134819" data-cms="contact.phoneDisplay">0744 134 819</a></p>
           <div class="footer-socials">
             <a data-link="facebook" href="https://www.facebook.com/p/Arr-Grooming-Salon-61557057672577/" target="_blank" rel="noopener" aria-label="Facebook"><svg class="icon" aria-hidden="true"><use href="#i-facebook" /></svg></a>
@@ -841,23 +841,23 @@
           </div>
         </div>
         <nav aria-label="Navigare în subsol">
-          <h3>Navigare</h3>
-          <a href="#despre">Despre</a>
-          <a href="#servicii">Servicii</a>
-          <a href="#programari">Programări</a>
-          <a href="#tiktok">TikTok</a>
-          <a href="#contact">Contact</a>
+          <h3 data-cms="footer.navHeading">Navigare</h3>
+          <a href="#despre" data-cms="header.navAbout">Despre</a>
+          <a href="#servicii" data-cms="header.navServices">Servicii</a>
+          <a href="#programari" data-cms="header.navBooking">Programări</a>
+          <a href="#tiktok" data-cms="header.navTiktok">TikTok</a>
+          <a href="#contact" data-cms="header.navContact">Contact</a>
         </nav>
       </div>
       <div class="footer-bottom">
         <span>© <span id="year">2026</span> <span data-cms="siteName">Arr Grooming Salon</span> · <span data-cms="contact.city">Galați</span></span>
         <span data-cms="footer.bottom">Răsfăț pentru blănoși.</span>
-        <a href="#main" class="footer-up">Înapoi sus <svg class="icon" aria-hidden="true"><use href="#i-up" /></svg></a>
+        <a href="#main" class="footer-up"><span data-cms="footer.backTop">Înapoi sus</span> <svg class="icon" aria-hidden="true"><use href="#i-up" /></svg></a>
       </div>
     </footer>
 
     <div class="mobile-bar">
-      <a class="mobile-book" href="#programari"><svg class="icon" aria-hidden="true"><use href="#i-calendar" /></svg>Programează-te</a>
+      <a class="mobile-book" href="#programari"><svg class="icon" aria-hidden="true"><use href="#i-calendar" /></svg><span data-cms="header.cta">Programează-te</span></a>
       <a class="mobile-call" data-link="tel" href="tel:+40744134819" data-cms-aria="Sună la salon: {contact.phoneDisplay}" aria-label="Sună la salon: 0744 134 819"><svg class="icon" aria-hidden="true"><use href="#i-phone" /></svg></a>
     </div>
 
@@ -868,30 +868,30 @@
 
     <dialog id="booking-dialog" aria-labelledby="bd-title" aria-describedby="bd-desc">
       <button class="dialog-close" type="button" aria-label="Închide fereastra"><svg class="icon" aria-hidden="true"><use href="#i-close" /></svg></button>
-      <p class="eyebrow">Ultimul pas</p>
-      <h2 id="bd-title">Cererea ta e <em>gata de trimis.</em></h2>
-      <p id="bd-desc">Alege cum ne trimiți detaliile. Programarea devine sigură după ce te sunăm să o confirmăm.</p>
+      <p class="eyebrow" data-cms="booking.dialog.eyebrow">Ultimul pas</p>
+      <h2 id="bd-title"><span data-cms="booking.dialog.title">Cererea ta e</span> <em data-cms="booking.dialog.accent">gata de trimis.</em></h2>
+      <p id="bd-desc" data-cms="booking.dialog.desc">Alege cum ne trimiți detaliile. Programarea devine sigură după ce te sunăm să o confirmăm.</p>
       <dl class="bd-summary" id="bd-summary"></dl>
       <div class="bd-actions">
         <a class="bd-action bd-wa" id="bd-whatsapp" data-link="whatsapp" href="https://wa.me/40744134819" target="_blank" rel="noopener">
           <svg class="icon" aria-hidden="true"><use href="#i-whatsapp" /></svg>
-          <span><strong>Trimite pe WhatsApp</strong><small>mesajul se completează automat</small></span>
+          <span><strong data-cms="booking.dialog.whatsapp">Trimite pe WhatsApp</strong><small data-cms="booking.dialog.whatsappHint">mesajul se completează automat</small></span>
           <svg class="icon bd-arrow" aria-hidden="true"><use href="#i-arrow" /></svg>
         </a>
         <a class="bd-action" id="bd-sms" href="sms:+40744134819">
           <svg class="icon" aria-hidden="true"><use href="#i-message" /></svg>
-          <span><strong>Trimite SMS</strong><small>din aplicația de mesaje</small></span>
+          <span><strong data-cms="booking.dialog.sms">Trimite SMS</strong><small data-cms="booking.dialog.smsHint">din aplicația de mesaje</small></span>
           <svg class="icon bd-arrow" aria-hidden="true"><use href="#i-arrow" /></svg>
         </a>
         <a class="bd-action" data-link="tel" href="tel:+40744134819">
           <svg class="icon" aria-hidden="true"><use href="#i-phone" /></svg>
-          <span><strong>Sună acum</strong><small data-cms="contact.phoneDisplay">0744 134 819</small></span>
+          <span><strong data-cms="booking.dialog.call">Sună acum</strong><small data-cms="contact.phoneDisplay">0744 134 819</small></span>
           <svg class="icon bd-arrow" aria-hidden="true"><use href="#i-arrow" /></svg>
         </a>
       </div>
       <div class="bd-secondary">
-        <button type="button" class="text-link" id="bd-copy"><svg class="icon" aria-hidden="true"><use href="#i-copy" /></svg>Copiază detaliile</button>
-        <button type="button" class="text-link" id="bd-ics"><svg class="icon" aria-hidden="true"><use href="#i-calendar" /></svg>Adaugă în calendarul tău</button>
+        <button type="button" class="text-link" id="bd-copy"><svg class="icon" aria-hidden="true"><use href="#i-copy" /></svg><span data-cms="booking.dialog.copy">Copiază detaliile</span></button>
+        <button type="button" class="text-link" id="bd-ics"><svg class="icon" aria-hidden="true"><use href="#i-calendar" /></svg><span data-cms="booking.dialog.ics">Adaugă în calendarul tău</span></button>
       </div>
     </dialog>
 

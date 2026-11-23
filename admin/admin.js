@@ -11,7 +11,7 @@ import {
   safeUrl,
   serializeDocument,
   summarizeHours,
-} from "./render.js?v=20261123";
+} from "./render.js?v=20261123b";
 
 /* ---------------------------------------------------------------------------
    Configurare
@@ -35,6 +35,7 @@ const state = {
   uploads: [],
   section: "start",
   busy: false,
+  searching: false,
 };
 
 /* ---------------------------------------------------------------------------
@@ -76,7 +77,11 @@ function icon(id, cls = "ic") {
 function setPath(object, path, value) {
   const keys = path.split(".");
   const last = keys.pop();
-  const target = keys.reduce((node, key) => node[key], object);
+  let target = object;
+  for (const key of keys) {
+    if (target[key] == null || typeof target[key] !== "object") target[key] = {};
+    target = target[key];
+  }
   target[last] = value;
 }
 const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -202,7 +207,7 @@ async function loadSite() {
     html = await response.text();
   }
   const doc = new DOMParser().parseFromString(html, "text/html");
-  const content = readContent(doc);
+  const content = applyDefaults(readContent(doc), doc);
   state.html = html;
   state.sha = sha;
   state.content = content;
@@ -447,70 +452,405 @@ function listEditor({ path, itemTitle, create, renderItem, min = 0, max = 30, ad
 }
 
 /* ---------------------------------------------------------------------------
-   Secțiuni
+   Câmpurile site-ului, secțiune cu secțiune, în ordinea de pe pagină
 --------------------------------------------------------------------------- */
+const F = (path, label, options = {}) => ({ path, label, ...options });
+const keep = (...names) => `Păstrează ${names.join(" și ")}: acolo se completează automat.`;
+const fold = (value) => String(value ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+const squash = (value) => String(value ?? "").replace(/\s+/g, " ").trim();
+
 const SECTIONS = [
   { id: "start", label: "Început", icon: "a-home", render: renderStart },
-  { id: "announcement", label: "Anunț", icon: "a-megaphone", render: renderAnnouncement },
-  { id: "hero", label: "Prima pagină", icon: "a-star", render: renderHero },
-  { id: "about", label: "Despre noi", icon: "a-heart", render: renderAbout },
-  { id: "services", label: "Servicii", icon: "a-scissors", render: renderServices },
-  { id: "process", label: "Cum funcționează", icon: "a-steps", render: renderProcess },
-  { id: "hours", label: "Program și zile libere", icon: "a-clock", render: renderHours },
-  { id: "booking", label: "Programări online", icon: "a-calendar", render: renderBooking },
-  { id: "contact", label: "Contact și rețele", icon: "a-phone", render: renderContact },
-  { id: "social", label: "TikTok", icon: "a-play", render: renderSocial },
-  { id: "reviews", label: "Recenzii și întrebări", icon: "a-chat", render: renderReviews },
-  { id: "seo", label: "Subsol și Google", icon: "a-search", render: renderSeo },
+
+  { id: "announcement", group: "Pagina, de sus în jos", label: "Anunț", icon: "a-megaphone", cards: [
+    { title: "Anunț pe site", desc: "O bandă roz, afișată deasupra meniului, pe toate dispozitivele. Utilă pentru concedii, sărbători sau oferte.", fields: [
+      F("announcement.enabled", "Afișează anunțul pe site", { kind: "toggle" }),
+      F("announcement.text", "Textul anunțului", { max: 110, wide: true, opt: true, placeholder: "Ex.: Între 24 și 26 decembrie salonul este închis. Sărbători fericite!" }),
+      F("announcement.link", "Link (opțional)", { wide: true, type: "url", opt: true, placeholder: "Ex.: #programari sau https://…", hint: "Dacă pui un link, anunțul devine clicabil. Pentru secțiunea de programări scrie #programari." }),
+    ] },
+  ] },
+
+  { id: "header", label: "Meniu și antet", icon: "a-menu", cards: [
+    { title: "Numele salonului", desc: "Apare lângă logo, sus și în subsol.", fields: [
+      F("header.brandMain", "Numele, prima parte", { max: 20 }),
+      F("header.brandAccent", "Numele, partea roz", { max: 20 }),
+      F("header.brandTagline", "Textul mic de sub nume", { max: 32 }),
+      F("siteName", "Numele complet al salonului", { max: 50, hint: "Folosit la Facebook, în subsol, în mesajele de programare și pentru Google." }),
+    ] },
+    { title: "Meniul", desc: "Linkurile din meniul de sus și din subsol.", fields: [
+      F("header.navAbout", "Link spre Despre noi", { max: 20 }),
+      F("header.navServices", "Link spre Servicii", { max: 20 }),
+      F("header.navBooking", "Link spre Programări", { max: 20 }),
+      F("header.navReviews", "Link spre Recenzii", { max: 20 }),
+      F("header.navContact", "Link spre Contact", { max: 20 }),
+      F("header.navTiktok", "Link spre TikTok (în subsol)", { max: 20 }),
+      F("header.cta", "Butonul de programare", { max: 24, hint: "Același text apare sus, în subsol și în bara de jos de pe telefon." }),
+    ] },
+    { title: "Deschis sau închis acum", desc: "Mesajul din bara de sus și de pe poza din prima pagină. Ora se calculează singură din program.", fields: [
+      F("status.openUntil", "Când salonul e deschis", { def: "Deschis acum · până la {ora}", max: 60, hint: keep("{ora}") }),
+      F("status.closedToday", "Închis, dar se deschide azi", { def: "Închis acum · deschidem azi la {ora}", max: 60, hint: keep("{ora}") }),
+      F("status.opensToday", "Varianta scurtă, pe poză", { def: "Deschidem azi la {ora}", max: 40, hint: keep("{ora}") }),
+      F("status.closedNext", "Închis, se deschide în altă zi", { def: "Închis acum · deschidem {cand} la {ora}", max: 60, hint: keep("{cand}", "{ora}") }),
+      F("status.opensNext", "Varianta scurtă, pe poză", { def: "Deschidem {cand} la {ora}", max: 40, hint: keep("{cand}", "{ora}") }),
+      F("status.tomorrow", "Cuvântul pentru ziua de mâine", { def: "mâine", max: 12 }),
+      F("status.closed", "Când nu există program", { def: "Închis", max: 20 }),
+    ], after: () => [note("Adresa și orele din bara de sus se iau automat din secțiunile Contact și Program și zile libere.")] },
+  ] },
+
+  { id: "hero", label: "Prima pagină", icon: "a-star", cards: [
+    { title: "Texte", desc: "Primul lucru pe care îl vede un vizitator.", fields: [
+      F("hero.eyebrow", "Eticheta de deasupra titlului", { max: 60, wide: true }),
+      F("hero.titleLine1", "Titlu, primul rând", { max: 28 }),
+      F("hero.titleLine2", "Titlu, al doilea rând", { max: 18 }),
+      F("hero.titleAccent", "Cuvântul evidențiat (roz, subliniat)", { max: 16 }),
+      F("hero.button", "Textul butonului", { max: 28 }),
+      F("hero.lead", "Descriere sub titlu", { multi: 3, max: 220 }),
+      F("hero.callSmall", "Text mic deasupra telefonului", { max: 24 }),
+      F("hero.ratingSuffix", "Text după notă", { def: "pe Google", max: 20, hint: "Ex.: 5,0 pe Google. Nota se schimbă în Recenzii și întrebări." }),
+      F("hero.ratingSmall", "Text sub notă", { max: 40 }),
+      F("hero.chip", "Eticheta de pe imagine", { max: 24 }),
+      F("hero.badgeText", "Textul din insigna rotundă", { max: 40, hint: "Se scrie în cerc, cu majuscule. Ține-l la aproximativ 30 de caractere." }),
+    ], after: () => [note("Titlul se adaptează automat ca să încapă în ecran. Păstrează-l scurt: 3-5 cuvinte arată cel mai bine.")] },
+    { title: "Imaginea principală", desc: "Cel mai bine arată o poză decupată (fundal transparent, PNG sau WebP), în format vertical.", render: heroImageEditor, fields: [], hiddenFields: [F("hero.imageAlt", "Descrierea imaginii")] },
+  ] },
+
+  { id: "marquee", label: "Banda cu servicii", icon: "a-lines", cards: [
+    { title: "Textele care se derulează", desc: "Banda colorată de sub prima pagină. Ordinea de aici este ordinea de pe site.", render: () => [el("div", { class: "chips-editor" }, marqueeEditor())], find: () => state.content.marquee },
+  ] },
+
+  { id: "about", label: "Despre noi", icon: "a-heart", cards: [
+    { title: "Texte", fields: [
+      F("about.label", "Eticheta secțiunii", { max: 30 }),
+      F("about.title", "Titlu", { max: 40 }),
+      F("about.titleMuted", "Subtitlu (gri)", { max: 40 }),
+      F("about.lead", "Paragraf principal", { multi: 3, max: 260 }),
+      F("about.text", "Paragraf secundar", { multi: 4, max: 420 }),
+      F("about.link", "Linkul de sub text", { max: 40 }),
+    ] },
+    { title: "Groomerul și ilustrația", fields: [
+      F("about.groomerName", "Numele groomerului", { max: 30 }),
+      F("about.groomerRole", "Descriere groomer", { max: 110 }),
+      F("about.artCaption1", "Textul de pe ilustrație, rândul 1", { max: 30 }),
+      F("about.artCaption2", "Textul de pe ilustrație, rândul 2", { max: 30 }),
+    ] },
+    { title: "Cifrele din dreapta", desc: "Trei casete cu numere care se animă când apar pe ecran.", render: statsEditor, find: () => state.content.about.stats.flatMap((stat) => [stat.value, stat.suffix, stat.label]) },
+  ] },
+
+  { id: "gallery", label: "Galerie foto", icon: "a-image", cards: [
+    { title: "Texte", fields: [
+      F("gallery.eyebrow", "Eticheta de deasupra titlului", { max: 30 }),
+      F("gallery.title", "Titlu", { max: 50 }),
+      F("gallery.text", "Text explicativ", { multi: 2, max: 180 }),
+      F("gallery.hint", "Indicația de sub raft", { max: 40 }),
+      F("gallery.soonTitle", "Titlul cartonașelor fără poză", { def: "Coming Soon", max: 24 }),
+      F("gallery.soonText", "Textul cartonașelor fără poză", { def: "Poze din salon, în curând", max: 40 }),
+    ] },
+    { title: "Cartonașele (raftul 3D)", desc: "Cartonașele se rotesc ca un raft. Cele fără poză afișează textul de mai sus până încarci una.", render: galleryEditor, find: () => state.content.gallery.items.flatMap((item) => [item.label, item.alt]) },
+  ] },
+
+  { id: "services", label: "Servicii", icon: "a-scissors", cards: [
+    { title: "Texte", fields: [
+      F("servicesSection.label", "Eticheta secțiunii", { max: 30 }),
+      F("servicesSection.sideLabel", "Textul vertical din lateral", { max: 30 }),
+      F("servicesSection.title", "Titlu", { max: 40 }),
+      F("servicesSection.accent", "Titlu, partea roz", { max: 40 }),
+      F("servicesSection.text", "Text explicativ", { multi: 2, max: 180 }),
+      F("servicesSection.pickLabel", "Butonul de sub fiecare serviciu", { def: "Alege acest serviciu", max: 30 }),
+      F("booking.messages.servicePicked", "Mesajul după ce apasă butonul", { def: "Ai ales: {serviciu}. Acum alege ziua și ora.", max: 90, wide: true, hint: keep("{serviciu}") }),
+    ] },
+    { title: "Lista de servicii", desc: "Ordinea de aici este ordinea de pe site. Serviciile marcate „apare în calendar” pot fi alese la programarea online.", render: servicesEditor, find: () => state.content.services.flatMap((service) => [service.name, service.tag, service.description, service.short]) },
+  ] },
+
+  { id: "process", label: "Cum funcționează", icon: "a-steps", cards: [
+    { title: "Texte", fields: [
+      F("process.label", "Eticheta secțiunii", { max: 30 }),
+      F("process.sideLabel", "Textul vertical din lateral", { max: 30 }),
+      F("process.title", "Titlu", { max: 40 }),
+      F("process.accent", "Titlu, partea roz", { max: 40 }),
+      F("process.stepWord", "Cuvântul dinaintea numărului", { def: "Pasul", max: 12, hint: "Ex.: Pasul 1, Pasul 2…" }),
+      F("process.link", "Linkul de sub pași", { max: 40 }),
+    ] },
+    { title: "Cei patru pași", render: stepsEditor, find: () => state.content.process.steps.flatMap((step) => [step.title, step.text]) },
+  ] },
+
+  { id: "booking", label: "Programări online", icon: "a-calendar", cards: [
+    { title: "Titlul secțiunii", fields: [
+      F("booking.label", "Eticheta secțiunii", { max: 30 }),
+      F("booking.sideLabel", "Textul vertical din lateral", { max: 30 }),
+      F("booking.title", "Titlu", { max: 40 }),
+      F("booking.accent", "Titlu, partea roz", { max: 40 }),
+      F("booking.text", "Text explicativ", { multi: 2, max: 180 }),
+    ] },
+    { title: "Pasul 1: blănosul", fields: [
+      F("booking.form.step1", "Titlul pasului", { max: 40 }),
+      F("booking.form.dog", "Butonul pentru câine", { max: 16 }),
+      F("booking.form.cat", "Butonul pentru pisică", { max: 16 }),
+      F("booking.form.sizeLabel", "Întrebarea despre talie", { max: 40 }),
+      F("booking.form.small", "Talie mică", { max: 16 }),
+      F("booking.form.smallHint", "Talie mică, explicație", { max: 24 }),
+      F("booking.form.medium", "Talie medie", { max: 16 }),
+      F("booking.form.mediumHint", "Talie medie, explicație", { max: 24 }),
+      F("booking.form.large", "Talie mare", { max: 16 }),
+      F("booking.form.largeHint", "Talie mare, explicație", { max: 24 }),
+    ] },
+    { title: "Pașii 2 și 3: serviciul, ziua și ora", fields: [
+      F("booking.form.step2", "Titlul pasului 2", { max: 40 }),
+      F("booking.form.step3", "Titlul pasului 3", { max: 40 }),
+      F("booking.messages.pickDay", "Titlu până se alege o zi", { max: 50 }),
+      F("booking.messages.pickDaySub", "Text până se alege o zi", { max: 120, wide: true }),
+      F("booking.messages.pickService", "Text când nu e ales serviciul", { def: "Alege și serviciul, ca să-ți arătăm orele potrivite duratei lui.", max: 120, wide: true }),
+      F("booking.messages.slotsFor", "Text deasupra orelor", { def: "Ore de început pentru {serviciu}, aprox. {durata}.", max: 120, wide: true, hint: keep("{serviciu}", "{durata}") }),
+      F("booking.messages.noSlots", "Când nu mai sunt ore libere", { def: "Nu mai sunt ore potrivite în această zi. Alege altă zi.", max: 120, wide: true }),
+      F("booking.messages.slotGone", "Când ora aleasă nu se mai potrivește", { def: "Ora aleasă nu se mai potrivește. Te rugăm să alegi alta.", max: 120, wide: true }),
+    ] },
+    { title: "Mesajele de sub calendar", desc: "Apar sub calendar, în funcție de ziua pe care apasă vizitatorul.", fields: [
+      F("booking.calendar.closedDays", "Zilele în care salonul e închis", { def: "{zile} salonul este închis.", max: 80, hint: keep("{zile}") + " Ex.: Duminica salonul este închis." }),
+      F("booking.calendar.openDaily", "Dacă salonul e deschis zilnic", { def: "Salonul este deschis în fiecare zi.", max: 80 }),
+      F("booking.calendar.horizon", "Cu cât timp înainte se poate programa", { def: "Poți trimite cereri cu până la {zile} de zile înainte.", max: 100, wide: true, hint: keep("{zile}") }),
+      F("booking.calendar.pickOther", "Îndemnul de a alege altă zi", { def: "Alege altă zi.", max: 40 }),
+      F("booking.calendar.past", "O zi care a trecut", { def: "Ziua aceasta a trecut. Alege o zi din viitor.", max: 100 }),
+      F("booking.calendar.full", "O zi fără ore libere", { def: "Pentru această zi nu mai sunt ore potrivite. Alege altă zi.", max: 100, wide: true }),
+      F("booking.calendar.holiday", "O zi liberă", { def: "În această zi salonul este închis. Alege altă zi.", max: 100, wide: true }),
+      F("booking.calendar.holidayReason", "O zi liberă cu motiv", { def: "În această zi salonul este închis ({motiv}). Alege altă zi.", max: 100, wide: true, hint: keep("{motiv}") + " Motivul se scrie la Program și zile libere." }),
+    ] },
+    { title: "Pasul 4: datele de contact", fields: [
+      F("booking.form.step4", "Titlul pasului 4", { max: 40 }),
+      F("booking.form.name", "Câmpul pentru nume", { max: 30 }),
+      F("booking.form.phone", "Câmpul pentru telefon", { max: 30 }),
+      F("booking.form.phonePlaceholder", "Exemplul din câmpul de telefon", { max: 20, opt: true }),
+      F("booking.form.petName", "Câmpul pentru numele blănosului", { max: 30 }),
+      F("booking.form.breed", "Câmpul pentru rasă", { max: 30 }),
+      F("booking.form.notes", "Câmpul pentru observații", { max: 30 }),
+      F("booking.form.notesPlaceholder", "Exemplul din câmpul de observații", { max: 90, wide: true, opt: true }),
+      F("booking.form.optional", "Eticheta pentru câmpurile opționale", { max: 20 }),
+      F("booking.messages.errName", "Eroare: lipsește numele", { def: "Spune-ne cum te numești.", max: 80 }),
+      F("booking.messages.errPhone", "Eroare: telefon greșit", { def: "Introdu un număr valid, de exemplu 0722 123 456.", max: 80 }),
+      F("booking.messages.errPet", "Eroare: lipsește numele blănosului", { def: "Cum îl cheamă pe blănos?", max: 80 }),
+    ] },
+    { title: "Rezumatul din dreapta", desc: "Caseta care arată ce s-a ales și butonul de trimitere.", fields: [
+      F("booking.summary.eyebrow", "Eticheta de sus", { max: 30 }),
+      F("booking.summary.title", "Titlu", { max: 40 }),
+      F("booking.summary.pet", "Rândul pentru blănos", { max: 20 }),
+      F("booking.summary.service", "Rândul pentru serviciu", { max: 20 }),
+      F("booking.summary.duration", "Rândul pentru durată", { max: 20 }),
+      F("booking.summary.date", "Rândul pentru zi", { max: 20 }),
+      F("booking.summary.time", "Rândul pentru oră", { max: 20 }),
+      F("booking.summary.submit", "Butonul de trimitere", { max: 30 }),
+      F("booking.summary.note", "Textul mic de sub buton", { multi: 2, max: 200 }),
+      F("booking.summary.call", "Linkul de apel", { max: 40 }),
+      F("booking.messages.missing", "Ce mai e de ales", { def: "Mai ai de ales:", max: 40, hint: "Urmează automat lista: serviciul, ziua, ora." }),
+      F("booking.messages.needDetails", "Când lipsesc datele de contact", { def: "Mai completează numele tău, telefonul și numele blănosului.", max: 100, wide: true }),
+      F("booking.messages.ready", "Când totul este completat", { def: "Totul e pregătit. Trimite cererea!", max: 60 }),
+      F("booking.messages.needService", "La trimitere fără serviciu", { def: "Alege serviciul dorit.", max: 60 }),
+      F("booking.messages.needDay", "La trimitere fără zi", { def: "Alege ziua programării.", max: 60 }),
+      F("booking.messages.needTime", "La trimitere fără oră", { def: "Alege ora programării.", max: 60 }),
+      F("booking.messages.checkDetails", "La trimitere cu date greșite", { def: "Verifică datele de contact.", max: 60 }),
+    ] },
+    { title: "Fereastra de după trimitere", desc: "Apare după ce vizitatorul apasă butonul de trimitere.", fields: [
+      F("booking.dialog.eyebrow", "Eticheta de sus", { max: 30 }),
+      F("booking.dialog.title", "Titlu", { max: 30 }),
+      F("booking.dialog.accent", "Titlu, partea roz", { max: 30 }),
+      F("booking.dialog.desc", "Text", { multi: 2, max: 180 }),
+      F("booking.dialog.sentTitle", "Titlu, când cererea a ajuns automat", { def: "Cererea a ajuns", max: 30, hint: "Doar dacă folosești adresa automată de la Reguli pentru calendar." }),
+      F("booking.dialog.sentAccent", "Titlu, partea roz, când cererea a ajuns", { def: "la noi.", max: 30 }),
+      F("booking.dialog.sentDesc", "Text, când cererea a ajuns", { def: "Te sunăm în curând să confirmăm ora și prețul. Dacă vrei, ne poți scrie și direct.", multi: 2, max: 180 }),
+      F("booking.dialog.whatsapp", "Butonul WhatsApp", { max: 30 }),
+      F("booking.dialog.whatsappHint", "Butonul WhatsApp, explicație", { max: 40 }),
+      F("booking.dialog.sms", "Butonul SMS", { max: 30 }),
+      F("booking.dialog.smsHint", "Butonul SMS, explicație", { max: 40 }),
+      F("booking.dialog.call", "Butonul de apel", { max: 30 }),
+      F("booking.dialog.copy", "Butonul de copiere", { max: 30 }),
+      F("booking.dialog.ics", "Butonul de calendar", { max: 30 }),
+      F("booking.messages.copied", "Mesaj: detaliile au fost copiate", { def: "Detaliile au fost copiate.", max: 60 }),
+      F("booking.messages.copyFailed", "Mesaj: copierea nu a mers", { def: "Nu am putut copia automat.", max: 60 }),
+      F("booking.messages.icsDone", "Mesaj: evenimentul a fost descărcat", { def: "Evenimentul a fost descărcat pentru calendarul tău.", max: 80 }),
+    ] },
+    { title: "Mesajul trimis pe WhatsApp sau SMS", desc: "Serviciul, blănosul, ziua și ora se completează automat între salut și mulțumire.", fields: [
+      F("booking.messages.greeting", "Salutul de la început", { def: "Bună ziua! Aș dori o programare la {salon}.", max: 100, wide: true, hint: keep("{salon}") }),
+      F("booking.messages.waName", "Eticheta pentru nume", { def: "Nume", max: 20 }),
+      F("booking.messages.waPhone", "Eticheta pentru telefon", { def: "Telefon", max: 20 }),
+      F("booking.messages.waNotes", "Eticheta pentru observații", { def: "Observații", max: 20 }),
+      F("booking.messages.thanks", "Mulțumirea de la final", { def: "Mulțumesc!", max: 40 }),
+    ] },
+    { title: "Reguli pentru calendar", desc: "Orele propuse în calendar pornesc de la programul salonului și de la durata fiecărui serviciu.", fields: [
+      F("booking.slotStep", "Din cât în cât propunem ore", { kind: "select", options: [[15, "La 15 minute"], [30, "La 30 de minute"], [45, "La 45 de minute"], [60, "La o oră"]] }),
+      F("booking.leadMinutes", "Cu câte minute înainte se poate programa cineva azi", { kind: "number", range: [0, 1440, 15] }),
+      F("booking.horizonDays", "Cu câte zile în avans se poate programa", { kind: "number", range: [7, 365, 1] }),
+    ], advanced: [
+      F("booking.endpoint", "Adresă care primește automat cererile (opțional)", { wide: true, type: "url", opt: true, hint: "Lasă gol dacă nu folosești un serviciu de formulare. Cererile se trimit oricum pe WhatsApp sau SMS." }),
+    ] },
+  ] },
+
+  { id: "social", label: "TikTok", icon: "a-play", cards: [
+    { title: "Texte", fields: [
+      F("social.label", "Eticheta secțiunii", { max: 30 }),
+      F("social.title", "Titlu", { max: 40 }),
+      F("social.accent", "Titlu, partea roz", { max: 40 }),
+      F("social.text", "Text explicativ", { multi: 2, max: 180 }),
+      F("social.followSmall", "Text mic deasupra profilului", { max: 40 }),
+      F("social.reelLabel", "Eticheta de pe fiecare videoclip", { def: "Video TikTok", max: 20 }),
+    ], after: () => [note("Linkul și numele profilului se schimbă în secțiunea Contact.")] },
+    { title: "Videoclipuri recomandate", desc: "Deschide videoclipul pe TikTok, apasă Distribuie, apoi Copiază linkul și lipește-l aici.", render: reelsEditor, find: () => state.content.social.reels.flatMap((reel) => [reel.title, reel.subtitle, reel.url]) },
+  ] },
+
+  { id: "reviews", label: "Recenzii și întrebări", icon: "a-chat", cards: [
+    { title: "Recenzia", desc: "Caseta închisă la culoare cu nota și o recenzie reală.", fields: [
+      F("reviews.label", "Eticheta secțiunii", { max: 30 }),
+      F("reviews.sideLabel", "Textul vertical din lateral", { max: 30 }),
+      F("reviews.score", "Nota", { max: 4, hint: "Ex.: 5,0" }),
+      F("reviews.outOf", "Text după notă", { max: 12 }),
+      F("reviews.subtitle", "Text sub stele", { max: 80 }),
+      F("reviews.quote", "Recenzia citată (fără ghilimele)", { multi: 2, max: 200 }),
+      F("reviews.author", "Autorul recenziei", { max: 50, hint: "Ex.: Alina S. · recenzie pe Google" }),
+      F("reviews.link", "Linkul către recenzii", { max: 40 }),
+    ] },
+    { title: "Întrebări frecvente", desc: "Numărul de telefon scris în răspunsuri devine automat link de apel.", fields: [
+      F("reviews.faqTitle", "Titlu", { max: 40 }),
+      F("reviews.faqAccent", "Titlu, partea roz", { max: 40 }),
+    ], render: faqEditor, find: () => state.content.faq.flatMap((item) => [item.q, item.a]) },
+  ] },
+
+  { id: "contact", label: "Contact", icon: "a-phone", cards: [
+    { title: "Texte", fields: [
+      F("contactSection.label", "Eticheta secțiunii", { max: 30 }),
+      F("contactSection.title", "Titlu", { max: 40 }),
+      F("contactSection.accent", "Titlu, partea roz", { max: 40 }),
+      F("contactSection.text", "Text explicativ", { multi: 2, max: 160 }),
+      F("contactSection.findUs", "Eticheta de deasupra adresei", { max: 30 }),
+      F("contactSection.directions", "Butonul de indicații", { max: 30 }),
+      F("contactSection.mapButton", "Butonul de pe hartă", { max: 30 }),
+      F("contactSection.closedLabel", "Cuvântul pentru zilele închise", { def: "Închis", max: 16 }),
+      F("contactSection.closedDaysTitle", "Titlul listei de zile libere", { def: "Zile în care salonul este închis", max: 50 }),
+      F("contactSection.copied", "Mesaj: numărul a fost copiat", { def: "Numărul a fost copiat.", max: 50 }),
+      F("contactSection.copyFallback", "Mesaj: copierea nu a mers", { def: "Numărul nostru: {telefon}", max: 50, hint: keep("{telefon}") }),
+    ] },
+    { title: "Telefon și adresă", desc: "Apar în bara de sus, la contact, în subsol și în mesajele de programare.", fields: [
+      F("contact.phoneDisplay", "Telefon (cum apare pe site)", { kind: "phone", max: 20 }),
+      F("contact.street", "Stradă și număr", { max: 50 }),
+      F("contact.building", "Bloc, scară, etaj", { max: 40, opt: true }),
+      F("contact.city", "Oraș", { max: 30 }),
+      F("contact.country", "Țara", { def: "România", max: 30 }),
+      F("contact.postalCode", "Cod poștal", { max: 10, opt: true }),
+      F("contact.landmark", "Reper", { max: 50, opt: true, hint: "Ex.: Lângă Salonul Ciufulix" }),
+      F("contact.mapsUrl", "Link Google Maps", { wide: true, type: "url", opt: true, hint: "Deschide salonul în Google Maps, apasă Distribuie și copiază linkul aici." }),
+    ] },
+    { title: "Rețele sociale", fields: [
+      F("contact.facebook", "Pagina de Facebook", { wide: true, type: "url", opt: true }),
+      F("contact.instagram", "Profilul de Instagram", { type: "url", opt: true }),
+      F("contact.instagramHandle", "Numele de Instagram", { max: 30, opt: true, placeholder: "@…" }),
+      F("contact.tiktok", "Profilul de TikTok", { type: "url", opt: true }),
+      F("contact.tiktokHandle", "Numele de TikTok", { max: 30, opt: true, placeholder: "@…" }),
+    ] },
+  ] },
+
+  { id: "footer", label: "Subsol", icon: "a-layout", cards: [
+    { title: "Texte", fields: [
+      F("footer.tagline", "Slogan", { max: 30 }),
+      F("footer.taglineAccent", "Slogan, partea roz", { max: 30 }),
+      F("footer.salonHeading", "Titlul coloanei cu adresa", { max: 24 }),
+      F("footer.programHeading", "Titlul coloanei cu programul", { max: 24 }),
+      F("footer.contactHeading", "Titlul coloanei de contact", { max: 24 }),
+      F("footer.navHeading", "Titlul coloanei cu linkuri", { max: 24 }),
+      F("footer.bottom", "Text mic din dreapta jos", { max: 40 }),
+      F("footer.backTop", "Linkul de întoarcere sus", { max: 24 }),
+    ] },
+  ] },
+
+  { id: "hours", group: "Setări", label: "Program și zile libere", icon: "a-clock", cards: [
+    { title: "Programul săptămânal", desc: "Folosit peste tot pe site: bara de sus, contact, subsol, statusul „deschis acum” și orele din calendar.", render: hoursEditor },
+    { title: "Zile libere", desc: "Concedii și sărbători. În aceste zile calendarul nu acceptă programări, iar pe site apare o listă cu zilele în care salonul e închis.", render: closedDatesEditor, find: () => state.content.closedDates.flatMap((item) => [item.date, item.note]) },
+  ] },
+
+  { id: "seo", label: "Google și distribuire", icon: "a-search", cards: [
+    { title: "Google și distribuire", desc: "Cum apare site-ul în căutările Google și când e trimis pe Facebook sau WhatsApp.", fields: [
+      F("seo.title", "Titlul paginii", { max: 70, wide: true }),
+      F("seo.description", "Descrierea paginii", { multi: 3, max: 160 }),
+    ], after: () => [googlePreview()] },
+  ] },
+
   { id: "history", label: "Istoric versiuni", icon: "a-history", render: renderHistory },
   { id: "account", label: "Cont și conectare", icon: "a-user", render: renderAccount },
 ];
 
-function renderStart() {
-  const connected = Boolean(state.token);
-  const shortcut = (id, title, description) =>
-    el("button", { type: "button", class: "shortcut", onClick: () => openSection(id) }, el("strong", { text: title }), el("span", { text: description }));
-  return [
-    el("div", { class: "hello" },
-      el("div", {}, el("p", { class: "eyebrow", text: "Bine ai venit" }), el("h1", { text: "Ce vrei să schimbi azi pe site?" }), el("p", { class: "muted", text: "Alege o secțiune din stânga, modifică textele, apoi apasă „Previzualizează” ca să vezi rezultatul și „Publică” ca să apară pe site." })),
-      el("img", { src: "../assets/logo-mark.svg", alt: "", width: 110, height: 110 }),
+const fieldEntries = () =>
+  SECTIONS.flatMap((section) =>
+    (section.cards || []).flatMap((cardDef, cardIndex) =>
+      [...(cardDef.fields || []), ...(cardDef.advanced || []), ...(cardDef.hiddenFields || [])].map((fieldDef) => ({ section, cardDef, cardIndex, field: fieldDef })),
     ),
-    connected
-      ? note("Site-ul este conectat la GitHub. Modificările publicate apar pe site în aproximativ un minut.", "ok")
-      : el("div", { class: "note warn" }, el("p", { text: "Site-ul nu este încă conectat la GitHub, așa că poți modifica și previzualiza, dar nu poți publica. Conectarea se face o singură dată." }), el("button", { type: "button", class: "btn btn-small", onClick: () => openSection("account") }, "Conectează acum")),
-    card("Scurtături", "Cele mai frecvente modificări.",
-      el("div", { class: "shortcuts" },
-        shortcut("hours", "Schimbă programul", "Orele pe zile și zilele libere"),
-        shortcut("announcement", "Pune un anunț", "O bandă vizibilă sus pe site"),
-        shortcut("services", "Editează serviciile", "Nume, descrieri și durate"),
-        shortcut("hero", "Schimbă poza principală", "Imaginea și textele din prima pagină"),
-        shortcut("contact", "Telefon și adresă", "Datele de contact și rețelele"),
-        shortcut("history", "Revino la o versiune", "Dacă ai greșit ceva"),
-      ),
-    ),
-    card("Cum funcționează", null,
-      el("ol", { class: "how" },
-        el("li", {}, el("strong", { text: "Modifici" }), " textele în secțiunile din stânga. Nimic nu se schimbă pe site până nu publici."),
-        el("li", {}, el("strong", { text: "Previzualizezi" }), " pagina exact cum va arăta, pe calculator, tabletă sau telefon."),
-        el("li", {}, el("strong", { text: "Publici" }), ". Site-ul se actualizează singur în aproximativ un minut."),
-      ),
-    ),
-  ];
+  );
+
+// Completează în date textele care încă nu au fost salvate niciodată din panou:
+// întâi textul exact de pe pagină, apoi textele implicite ale mesajelor din calendar.
+function applyDefaults(content, ...docs) {
+  for (const doc of docs) {
+    if (!doc) continue;
+    doc.querySelectorAll("[data-cms]").forEach((node) => {
+      const path = node.getAttribute("data-cms");
+      if (path.startsWith("d.") || getPath(content, path) !== undefined) return;
+      setPath(content, path, squash(node.textContent));
+    });
+    doc.querySelectorAll("[data-cms-placeholder]").forEach((node) => {
+      const path = node.getAttribute("data-cms-placeholder");
+      if (getPath(content, path) !== undefined) return;
+      setPath(content, path, node.getAttribute("placeholder") || "");
+    });
+  }
+  for (const { field: fieldDef } of fieldEntries()) {
+    if (fieldDef.def !== undefined && getPath(content, fieldDef.path) === undefined) setPath(content, fieldDef.path, fieldDef.def);
+  }
+  return content;
 }
 
-function renderAnnouncement() {
-  return [
-    card("Anunț pe site", "O bandă roz, afișată deasupra meniului, pe toate dispozitivele. Utilă pentru concedii, sărbători sau oferte.",
-      toggle("announcement.enabled", "Afișează anunțul pe site"),
-      grid(
-        text("announcement.text", "Textul anunțului", { max: 110, wide: true, placeholder: "Ex.: Între 24 și 26 decembrie salonul este închis. Sărbători fericite!" }),
-        text("announcement.link", "Link (opțional)", { wide: true, type: "url", placeholder: "Ex.: #programari sau https://…", hint: "Dacă pui un link, anunțul devine clicabil. Pentru secțiunea de programări scrie #programari." }),
-      ),
+function renderField(fieldDef) {
+  const { path, label, kind, hint } = fieldDef;
+  if (kind === "toggle") return toggle(path, label, { hint });
+  if (kind === "select") return select(path, label, fieldDef.options, { hint });
+  if (kind === "number") {
+    const [min, max, step] = fieldDef.range;
+    return number(path, label, { min, max, step, hint });
+  }
+  if (kind === "phone") return phoneField(fieldDef);
+  return text(path, label, { max: fieldDef.max, multiline: fieldDef.multi, type: fieldDef.type, hint, wide: fieldDef.wide, placeholder: fieldDef.placeholder });
+}
+function renderCard(section, cardDef, cardIndex) {
+  const fields = cardDef.fields || [];
+  const node = card(
+    cardDef.title,
+    cardDef.desc,
+    fields.length ? grid(fields.map(renderField)) : null,
+    cardDef.render ? cardDef.render() : null,
+    cardDef.advanced ? el("details", { class: "advanced" }, el("summary", { text: "Avansat" }), grid(cardDef.advanced.map(renderField))) : null,
+    cardDef.after ? cardDef.after() : null,
+  );
+  node.id = `card-${section.id}-${cardIndex}`;
+  return node;
+}
+function renderSectionCards(section) {
+  const cards = section.cards.map((cardDef, index) => renderCard(section, cardDef, index));
+  if (cards.length < 4) return cards;
+  const toc = el("nav", { class: "toc", "aria-label": "Părțile secțiunii" },
+    section.cards.map((cardDef, index) =>
+      el("button", { type: "button", class: "toc-link", onClick: () => cards[index].scrollIntoView({ behavior: "smooth", block: "start" }) }, cardDef.title),
     ),
-  ];
+  );
+  return [toc, ...cards];
 }
 
-function renderHero() {
+function phoneField(fieldDef) {
+  const phoneHint = el("p", { class: "fld-hint" });
+  const updatePhone = () => {
+    const phone = normalizePhone(getPath(state.content, fieldDef.path) || "");
+    phoneHint.textContent = `Link de apel: ${phone.tel} · WhatsApp: wa.me/${phone.wa}`;
+  };
+  const { control, counter } = textInput(fieldDef.path, { max: fieldDef.max, onInput: updatePhone });
+  updatePhone();
+  const box = field(fieldDef.label, control, { counter });
+  box.append(phoneHint);
+  return box;
+}
+
+/* ---------- Editoare speciale ---------- */
+function heroImageEditor() {
   const hero = state.content.hero;
   const preview = el("img", { class: "hero-preview", alt: "Imaginea din prima pagină" });
   const pending = () => state.uploads.find((upload) => upload.path === hero.image);
@@ -547,27 +887,13 @@ function renderHero() {
   } }, "Revino la imaginea inițială");
   refresh();
   return [
-    card("Texte", "Primul lucru pe care îl vede un vizitator.",
-      grid(
-        text("hero.eyebrow", "Eticheta de deasupra titlului", { max: 60, wide: true }),
-        text("hero.titleLine1", "Titlu, primul rând", { max: 28 }),
-        text("hero.titleLine2", "Titlu, al doilea rând", { max: 18 }),
-        text("hero.titleAccent", "Cuvântul evidențiat (roz, subliniat)", { max: 16 }),
-        text("hero.button", "Textul butonului", { max: 28 }),
-        text("hero.lead", "Descriere sub titlu", { multiline: 3, max: 220 }),
-        text("hero.chip", "Eticheta de pe imagine", { max: 24 }),
-      ),
-      note("Titlul se adaptează automat ca să încapă în ecran. Păstrează-l scurt: 3-5 cuvinte arată cel mai bine."),
-    ),
-    card("Imaginea principală", "Cel mai bine arată o poză decupată (fundal transparent, PNG sau WebP), în format vertical.",
-      el("div", { class: "hero-image" },
-        el("div", { class: "hero-preview-box" }, preview),
-        el("div", { class: "hero-image-actions" },
-          el("label", { class: "btn btn-primary", for: "hero-file" }, icon("a-upload"), "Încarcă altă imagine"),
-          fileInput,
-          reset,
-          text("hero.imageAlt", "Descrierea imaginii", { max: 120, wide: true, hint: "Pentru persoanele care folosesc cititoare de ecran și pentru Google. Ex.: Un cățel alb, proaspăt tuns." }),
-        ),
+    el("div", { class: "hero-image" },
+      el("div", { class: "hero-preview-box" }, preview),
+      el("div", { class: "hero-image-actions" },
+        el("label", { class: "btn btn-primary", for: "hero-file" }, icon("a-upload"), "Încarcă altă imagine"),
+        fileInput,
+        reset,
+        text("hero.imageAlt", "Descrierea imaginii", { max: 120, wide: true, hint: "Pentru persoanele care folosesc cititoare de ecran și pentru Google. Ex.: Un cățel alb, proaspăt tuns." }),
       ),
     ),
   ];
@@ -607,9 +933,10 @@ function galleryImageField(path, item, retitle = () => {}) {
   if (!fileInput.id) fileInput.id = `f-${++uid}`;
   const draw = () => {
     const pending = state.uploads.find((upload) => upload.path === item.image);
+    const soon = getPath(state.content, "gallery.soonTitle") || "Coming Soon";
     const thumb = item.image
       ? el("img", { class: "gallery-thumb", src: pending?.dataUrl || `../${item.image}`, alt: "" })
-      : el("span", { class: "gallery-thumb soon" }, el("strong", { text: "Coming Soon" }));
+      : el("span", { class: "gallery-thumb soon" }, el("strong", { text: soon }));
     const remove = item.image
       ? el("button", { type: "button", class: "btn btn-ghost btn-small", onClick: () => {
           state.uploads = state.uploads.filter((upload) => upload.path !== item.image);
@@ -622,7 +949,7 @@ function galleryImageField(path, item, retitle = () => {}) {
     box.replaceChildren(
       el("p", { class: "fld-label", text: "Poza" }),
       el("div", { class: "gallery-field-row" }, thumb, el("div", { class: "actions" }, el("label", { class: "btn btn-primary btn-small", for: fileInput.id }, icon("a-upload"), item.image ? "Schimbă poza" : "Încarcă o poză"), remove)),
-      el("p", { class: "fld-hint", text: "Fără poză, cartonașul afișează „Coming Soon”. Cel mai bine arată pozele verticale." }),
+      el("p", { class: "fld-hint", text: `Fără poză, cartonașul afișează „${soon}”. Cel mai bine arată pozele verticale.` }),
       fileInput,
     );
   };
@@ -647,54 +974,44 @@ function galleryImageField(path, item, retitle = () => {}) {
   return box;
 }
 
-function renderAbout() {
+function galleryEditor() {
   return [
-    card("Despre noi", null,
-      grid(
-        text("about.title", "Titlu", { max: 40 }),
-        text("about.titleMuted", "Subtitlu (gri)", { max: 40 }),
-        text("about.lead", "Paragraf principal", { multiline: 3, max: 260 }),
-        text("about.text", "Paragraf secundar", { multiline: 4, max: 420 }),
-        text("about.groomerName", "Numele groomerului", { max: 30 }),
-        text("about.groomerRole", "Descriere groomer", { max: 110 }),
-      ),
-    ),
-    card("Galerie foto (raftul 3D)", "Cartonașele se rotesc ca un raft. Cele fără poză afișează „Coming Soon” până încarci una.",
-      grid(text("gallery.title", "Titlu", { max: 50 }), text("gallery.text", "Text explicativ", { multiline: 2, max: 180 })),
-      listEditor({
-        path: "gallery.items",
-        min: 3,
-        max: 12,
-        addLabel: "Adaugă un cartonaș",
-        itemTitle: (item) => `${item.label || "Cartonaș"}${item.image ? "" : " · Coming Soon"}`,
-        create: () => ({ label: "Poză nouă", image: "", alt: "" }),
-        renderItem: (path, item, retitle) => [
-          text(`${path}.label`, "Eticheta de pe cartonaș", { max: 30, onInput: retitle }),
-          text(`${path}.alt`, "Descrierea pozei (pentru Google)", { max: 120 }),
-          galleryImageField(path, item, retitle),
-        ],
-      }),
-    ),
-    card("Cifrele din dreapta", "Trei casete cu numere care se animă când apar pe ecran.",
-      listEditor({
-        path: "about.stats",
-        min: 3,
-        max: 3,
-        reorder: false,
-        itemTitle: (item) => `${item.value}${item.suffix ? ` ${item.suffix}` : ""}`,
-        create: () => ({ value: "1", suffix: "", star: false, label: "" }),
-        renderItem: (path, item, retitle) => [
-          text(`${path}.value`, "Număr", { max: 6, onInput: retitle, hint: "Ex.: 5,0 sau 6" }),
-          text(`${path}.suffix`, "Cuvânt după număr (opțional)", { max: 12, onInput: retitle }),
-          text(`${path}.label`, "Explicație", { max: 70, wide: true }),
-          toggle(`${path}.star`, "Afișează o steluță lângă număr"),
-        ],
-      }),
-    ),
+    listEditor({
+      path: "gallery.items",
+      min: 3,
+      max: 12,
+      addLabel: "Adaugă un cartonaș",
+      itemTitle: (item) => `${item.label || "Cartonaș"}${item.image ? "" : " · fără poză"}`,
+      create: () => ({ label: "Poză nouă", image: "", alt: "" }),
+      renderItem: (path, item, retitle) => [
+        text(`${path}.label`, "Eticheta de pe cartonaș", { max: 30, onInput: retitle }),
+        text(`${path}.alt`, "Descrierea pozei (pentru Google)", { max: 120 }),
+        galleryImageField(path, item, retitle),
+      ],
+    }),
   ];
 }
 
-function renderServices() {
+function statsEditor() {
+  return [
+    listEditor({
+      path: "about.stats",
+      min: 3,
+      max: 3,
+      reorder: false,
+      itemTitle: (item) => `${item.value}${item.suffix ? ` ${item.suffix}` : ""}`,
+      create: () => ({ value: "1", suffix: "", star: false, label: "" }),
+      renderItem: (path, item, retitle) => [
+        text(`${path}.value`, "Număr", { max: 6, onInput: retitle, hint: "Ex.: 5,0 sau 6" }),
+        text(`${path}.suffix`, "Cuvânt după număr (opțional)", { max: 12, onInput: retitle }),
+        text(`${path}.label`, "Explicație", { max: 70, wide: true }),
+        toggle(`${path}.star`, "Afișează o steluță lângă număr"),
+      ],
+    }),
+  ];
+}
+
+function servicesEditor() {
   const durationFields = (path, item) => {
     const box = el("div", { class: "fld fld-wide durations" });
     const draw = () => {
@@ -726,42 +1043,31 @@ function renderServices() {
     return el("div", { class: "fld fld-wide" }, el("p", { class: "fld-label", text: "Pentru cine este serviciul" }), el("div", { class: "checks" }, make("dog", "Câini"), make("cat", "Pisici")));
   };
   return [
-    card("Titlul secțiunii", null,
-      grid(
-        text("servicesSection.title", "Titlu", { max: 40 }),
-        text("servicesSection.accent", "Titlu, partea roz", { max: 40 }),
-        text("servicesSection.text", "Text explicativ", { multiline: 2, max: 180 }),
-      ),
-    ),
-    card("Lista de servicii", "Ordinea de aici este ordinea de pe site. Serviciile marcate „apare în calendar” pot fi alese la programarea online.",
-      listEditor({
-        path: "services",
-        min: 1,
-        max: 12,
-        addLabel: "Adaugă un serviciu",
-        itemTitle: (item) => item.name || "Serviciu nou",
-        create: () => ({ id: `serviciu-${Date.now().toString(36)}`, name: "Serviciu nou", tag: "", description: "", icon: "i-sparkle", visible: true, bookable: true, pets: ["dog"], short: "", duration: { small: 60, medium: 60, large: 60, cat: null } }),
-        renderItem: (path, item, retitle) => {
-          const durations = durationFields(path, item);
-          return [
-            text(`${path}.name`, "Numele serviciului", { max: 40, onInput: retitle }),
-            text(`${path}.tag`, "Eticheta din dreapta", { max: 24, hint: "Ex.: Cel mai cerut" }),
-            text(`${path}.description`, "Descriere pe site", { multiline: 3, max: 320 }),
-            select(`${path}.icon`, "Pictogramă", ICONS.map((option) => [option.id, option.label])),
-            text(`${path}.short`, "Descriere scurtă în calendar", { max: 60 }),
-            toggle(`${path}.visible`, "Afișează serviciul pe site"),
-            toggle(`${path}.bookable`, "Apare în calendarul de programări"),
-            petChecks(path, item, durations.draw),
-            durations.box,
-          ];
-        },
-      }),
-    ),
-    card("Banda cu servicii", "Textele care se derulează sub prima pagină.",
-      el("div", { class: "chips-editor" }, marqueeEditor()),
-    ),
+    listEditor({
+      path: "services",
+      min: 1,
+      max: 12,
+      addLabel: "Adaugă un serviciu",
+      itemTitle: (item) => item.name || "Serviciu nou",
+      create: () => ({ id: `serviciu-${Date.now().toString(36)}`, name: "Serviciu nou", tag: "", description: "", icon: "i-sparkle", visible: true, bookable: true, pets: ["dog"], short: "", duration: { small: 60, medium: 60, large: 60, cat: null } }),
+      renderItem: (path, item, retitle) => {
+        const durations = durationFields(path, item);
+        return [
+          text(`${path}.name`, "Numele serviciului", { max: 40, onInput: retitle }),
+          text(`${path}.tag`, "Eticheta din dreapta", { max: 24, hint: "Ex.: Cel mai cerut" }),
+          text(`${path}.description`, "Descriere pe site", { multiline: 3, max: 320 }),
+          select(`${path}.icon`, "Pictogramă", ICONS.map((option) => [option.id, option.label])),
+          text(`${path}.short`, "Descriere scurtă în calendar", { max: 60 }),
+          toggle(`${path}.visible`, "Afișează serviciul pe site"),
+          toggle(`${path}.bookable`, "Apare în calendarul de programări"),
+          petChecks(path, item, durations.draw),
+          durations.box,
+        ];
+      },
+    }),
   ];
 }
+
 function marqueeEditor() {
   return listEditor({
     path: "marquee",
@@ -774,24 +1080,22 @@ function marqueeEditor() {
   });
 }
 
-function renderProcess() {
+function stepsEditor() {
+  const word = () => getPath(state.content, "process.stepWord") || "Pasul";
   return [
-    card("Cum funcționează", "Cei patru pași afișați înainte de calendar.",
-      grid(text("process.title", "Titlu", { max: 40 }), text("process.accent", "Titlu, partea roz", { max: 40 })),
-      listEditor({
-        path: "process.steps",
-        min: 4,
-        max: 4,
-        reorder: false,
-        itemTitle: (item, index) => `Pasul ${index + 1}: ${item.title}`,
-        create: () => ({ title: "", text: "" }),
-        renderItem: (path, item, retitle) => [text(`${path}.title`, "Titlu", { max: 32, onInput: retitle }), text(`${path}.text`, "Text", { multiline: 2, max: 150 })],
-      }),
-    ),
+    listEditor({
+      path: "process.steps",
+      min: 4,
+      max: 4,
+      reorder: false,
+      itemTitle: (item, index) => `${word()} ${index + 1}: ${item.title}`,
+      create: () => ({ title: "", text: "" }),
+      renderItem: (path, item, retitle) => [text(`${path}.title`, "Titlu", { max: 32, onInput: retitle }), text(`${path}.text`, "Text", { multiline: 2, max: 150 })],
+    }),
   ];
 }
 
-function renderHours() {
+function hoursEditor() {
   const table = el("div", { class: "hours-editor" });
   const summary = el("p", { class: "note ok" });
   const updateSummary = () => (summary.textContent = `Pe site va apărea: ${summarizeHours(state.content.hours, "short") || "salon închis"}`);
@@ -841,155 +1145,182 @@ function renderHours() {
     table.append(row);
     sync();
   });
+  return [table, summary];
+}
+
+function closedDatesEditor() {
   return [
-    card("Programul săptămânal", "Folosit peste tot pe site: bara de sus, contact, subsol, statusul „deschis acum” și orele din calendar.", table, summary),
-    card("Zile libere", "Concedii și sărbători. În aceste zile calendarul nu acceptă programări, iar pe site apare o listă cu zilele în care salonul e închis.",
-      listEditor({
-        path: "closedDates",
-        max: 60,
-        addLabel: "Adaugă o zi liberă",
-        itemTitle: (item) => (item.date ? new Intl.DateTimeFormat("ro-RO", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date(`${item.date}T12:00`)) : "Zi nouă"),
-        create: () => ({ date: new Date(Date.now() + 86400000).toISOString().slice(0, 10), note: "" }),
-        renderItem: (path, item, retitle) => [text(`${path}.date`, "Data", { type: "date", onInput: retitle }), text(`${path}.note`, "Motiv (opțional)", { max: 40, placeholder: "Ex.: Crăciun" })],
-      }),
-      note("Sfat: zilele trecute pot fi șterse oricând; oricum nu mai apar pe site."),
-    ),
+    listEditor({
+      path: "closedDates",
+      max: 60,
+      addLabel: "Adaugă o zi liberă",
+      itemTitle: (item) => (item.date ? new Intl.DateTimeFormat("ro-RO", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date(`${item.date}T12:00`)) : "Zi nouă"),
+      create: () => ({ date: new Date(Date.now() + 86400000).toISOString().slice(0, 10), note: "" }),
+      renderItem: (path, item, retitle) => [text(`${path}.date`, "Data", { type: "date", onInput: retitle }), text(`${path}.note`, "Motiv (opțional)", { max: 40, placeholder: "Ex.: Crăciun" })],
+    }),
+    note("Sfat: zilele trecute pot fi șterse oricând; oricum nu mai apar pe site."),
   ];
 }
 
-function renderBooking() {
-  return [
-    card("Textele secțiunii", null,
-      grid(
-        text("booking.title", "Titlu", { max: 40 }),
-        text("booking.accent", "Titlu, partea roz", { max: 40 }),
-        text("booking.text", "Text explicativ", { multiline: 2, max: 180 }),
-      ),
-    ),
-    card("Reguli pentru calendar", "Orele propuse în calendar pornesc de la programul salonului și de la durata fiecărui serviciu.",
-      grid(
-        select("booking.slotStep", "Din cât în cât propunem ore", [[15, "La 15 minute"], [30, "La 30 de minute"], [45, "La 45 de minute"], [60, "La o oră"]]),
-        number("booking.leadMinutes", "Cu câte minute înainte se poate programa cineva azi", { min: 0, max: 1440, step: 15 }),
-        number("booking.horizonDays", "Cu câte zile în avans se poate programa", { min: 7, max: 365, step: 1 }),
-      ),
-      el("details", { class: "advanced" }, el("summary", { text: "Avansat" }),
-        text("booking.endpoint", "Adresă care primește automat cererile (opțional)", { wide: true, type: "url", hint: "Lasă gol dacă nu folosești un serviciu de formulare. Cererile se trimit oricum pe WhatsApp sau SMS." }),
-      ),
-    ),
-  ];
-}
-
-function renderContact() {
-  const phoneHint = el("p", { class: "fld-hint" });
-  const updatePhone = () => {
-    const phone = normalizePhone(state.content.contact.phoneDisplay);
-    phoneHint.textContent = `Link de apel: ${phone.tel} · WhatsApp: wa.me/${phone.wa}`;
-  };
-  const { control: phoneControl } = textInput("contact.phoneDisplay", { max: 20, onInput: updatePhone });
-  updatePhone();
-  const phoneField = field("Telefon (cum apare pe site)", phoneControl);
-  phoneField.append(phoneHint);
-  return [
-    card("Telefon și adresă", "Apar în bara de sus, la contact, în subsol și în mesajele de programare.",
-      grid(
-        phoneField,
-        text("contact.street", "Stradă și număr", { max: 50 }),
-        text("contact.building", "Bloc, scară, etaj", { max: 40 }),
-        text("contact.city", "Oraș", { max: 30 }),
-        text("contact.postalCode", "Cod poștal", { max: 10 }),
-        text("contact.landmark", "Reper", { max: 50, hint: "Ex.: Lângă Salonul Ciufulix" }),
-        text("contact.mapsUrl", "Link Google Maps", { wide: true, type: "url", hint: "Deschide salonul în Google Maps, apasă Distribuie și copiază linkul aici." }),
-      ),
-    ),
-    card("Rețele sociale", null,
-      grid(
-        text("contact.facebook", "Pagina de Facebook", { wide: true, type: "url" }),
-        text("contact.instagram", "Profilul de Instagram", { type: "url" }),
-        text("contact.instagramHandle", "Numele de Instagram", { max: 30, placeholder: "@…" }),
-        text("contact.tiktok", "Profilul de TikTok", { type: "url" }),
-        text("contact.tiktokHandle", "Numele de TikTok", { max: 30, placeholder: "@…" }),
-      ),
-    ),
-  ];
-}
-
-function renderSocial() {
+function reelsEditor() {
   const colors = Object.entries(COLOR_LABELS);
   return [
-    card("Secțiunea TikTok", null,
-      grid(
-        text("social.title", "Titlu", { max: 40 }),
-        text("social.accent", "Titlu, partea roz", { max: 40 }),
-        text("social.text", "Text explicativ", { multiline: 2, max: 180 }),
-      ),
-    ),
-    card("Videoclipuri recomandate", "Deschide videoclipul pe TikTok, apasă Distribuie, apoi Copiază linkul și lipește-l aici.",
-      listEditor({
-        path: "social.reels",
-        min: 1,
-        max: 8,
-        addLabel: "Adaugă un videoclip",
-        itemTitle: (item) => item.title || "Videoclip nou",
-        create: () => ({ title: "Videoclip nou", subtitle: "", url: "https://www.tiktok.com/@arrgrooming.salon", icon: "i-scissors", colorA: "pink", colorB: "sky" }),
-        renderItem: (path, item, retitle) => [
-          text(`${path}.title`, "Titlu", { max: 30, onInput: retitle }),
-          text(`${path}.subtitle`, "Subtitlu", { max: 45 }),
-          text(`${path}.url`, "Link către videoclip", { wide: true, type: "url" }),
-          select(`${path}.icon`, "Pictogramă", ICONS.map((option) => [option.id, option.label])),
-          select(`${path}.colorA`, "Culoare sus", colors),
-          select(`${path}.colorB`, "Culoare jos", colors),
-        ],
-      }),
-    ),
+    listEditor({
+      path: "social.reels",
+      min: 1,
+      max: 8,
+      addLabel: "Adaugă un videoclip",
+      itemTitle: (item) => item.title || "Videoclip nou",
+      create: () => ({ title: "Videoclip nou", subtitle: "", url: "https://www.tiktok.com/@arrgrooming.salon", icon: "i-scissors", colorA: "pink", colorB: "sky" }),
+      renderItem: (path, item, retitle) => [
+        text(`${path}.title`, "Titlu", { max: 30, onInput: retitle }),
+        text(`${path}.subtitle`, "Subtitlu", { max: 45 }),
+        text(`${path}.url`, "Link către videoclip", { wide: true, type: "url" }),
+        select(`${path}.icon`, "Pictogramă", ICONS.map((option) => [option.id, option.label])),
+        select(`${path}.colorA`, "Culoare sus", colors),
+        select(`${path}.colorB`, "Culoare jos", colors),
+      ],
+    }),
   ];
 }
 
-function renderReviews() {
+function faqEditor() {
   return [
-    card("Recenzie", "Caseta închisă la culoare cu nota și o recenzie reală.",
-      grid(
-        text("reviews.score", "Nota", { max: 4, hint: "Ex.: 5,0" }),
-        text("reviews.subtitle", "Text sub stele", { max: 80 }),
-        text("reviews.quote", "Recenzia citată (fără ghilimele)", { multiline: 2, max: 200 }),
-        text("reviews.author", "Autorul recenziei", { max: 50, hint: "Ex.: Alina S. · recenzie pe Google" }),
-      ),
-    ),
-    card("Întrebări frecvente", "Numărul de telefon scris în răspunsuri devine automat link de apel.",
-      listEditor({
-        path: "faq",
-        min: 1,
-        max: 15,
-        addLabel: "Adaugă o întrebare",
-        itemTitle: (item) => item.q || "Întrebare nouă",
-        create: () => ({ q: "Întrebare nouă", a: "" }),
-        renderItem: (path, item, retitle) => [text(`${path}.q`, "Întrebarea", { max: 80, wide: true, onInput: retitle }), text(`${path}.a`, "Răspunsul", { multiline: 3, max: 400 })],
-      }),
-    ),
+    listEditor({
+      path: "faq",
+      min: 1,
+      max: 15,
+      addLabel: "Adaugă o întrebare",
+      itemTitle: (item) => item.q || "Întrebare nouă",
+      create: () => ({ q: "Întrebare nouă", a: "" }),
+      renderItem: (path, item, retitle) => [text(`${path}.q`, "Întrebarea", { max: 80, wide: true, onInput: retitle }), text(`${path}.a`, "Răspunsul", { multiline: 3, max: 400 })],
+    }),
   ];
 }
 
-function renderSeo() {
-  return [
-    card("Contact", null, grid(text("contactSection.title", "Titlu", { max: 40 }), text("contactSection.accent", "Titlu, partea roz", { max: 40 }), text("contactSection.text", "Text explicativ", { multiline: 2, max: 160 }))),
-    card("Subsol", null, grid(text("footer.tagline", "Slogan", { max: 30 }), text("footer.taglineAccent", "Slogan, partea roz", { max: 30 }), text("footer.bottom", "Text mic din dreapta jos", { max: 40 }))),
-    card("Google și distribuire", "Cum apare site-ul în căutările Google și când e trimis pe Facebook sau WhatsApp.",
-      grid(
-        text("seo.title", "Titlul paginii", { max: 70, wide: true }),
-        text("seo.description", "Descrierea paginii", { multiline: 3, max: 160 }),
-      ),
-      googlePreview(),
-    ),
-  ];
-}
 function googlePreview() {
   const box = el("div", { class: "serp" });
   const draw = () => {
     box.replaceChildren(el("span", { class: "serp-url", text: SITE_URL.replace(/^https?:\/\//, "") }), el("strong", { text: state.content.seo.title }), el("p", { text: state.content.seo.description }));
   };
   draw();
-  box.addEventListener("refresh", draw);
   document.addEventListener("input", () => box.isConnected && draw());
   return el("div", { class: "fld fld-wide" }, el("p", { class: "fld-label", text: "Previzualizare în Google" }), box);
+}
+
+/* ---------- Pagina de început ---------- */
+function renderStart() {
+  const connected = Boolean(state.token);
+  const shortcut = (id, title, description) =>
+    el("button", { type: "button", class: "shortcut", onClick: () => openSection(id) }, el("strong", { text: title }), el("span", { text: description }));
+  const total = fieldEntries().length;
+  return [
+    el("div", { class: "hello" },
+      el("div", {}, el("p", { class: "eyebrow", text: "Bine ai venit" }), el("h1", { text: "Ce vrei să schimbi azi pe site?" }), el("p", { class: "muted", text: "Fiecare text de pe site are câmpul lui, grupat pe secțiuni în ordinea de pe pagină. Modifică ce vrei, apoi apasă „Previzualizează” ca să vezi rezultatul și „Publică” ca să apară pe site." })),
+      el("img", { src: "../assets/logo-mark.svg", alt: "", width: 110, height: 110 }),
+    ),
+    connected
+      ? note("Site-ul este conectat la GitHub. Modificările publicate apar pe site în aproximativ un minut.", "ok")
+      : el("div", { class: "note warn" }, el("p", { text: "Site-ul nu este încă conectat la GitHub, așa că poți modifica și previzualiza, dar nu poți publica. Conectarea se face o singură dată." }), el("button", { type: "button", class: "btn btn-small", onClick: () => openSection("account") }, "Conectează acum")),
+    card("Caută orice text", `Scrie câteva cuvinte din textul pe care vrei să-l schimbi (de exemplu „deschis acum” sau „WhatsApp”) și îți arătăm câmpul potrivit. Panoul are ${total} de câmpuri, plus listele de servicii, poze, întrebări și videoclipuri.`,
+      el("div", { class: "actions" }, el("button", { type: "button", class: "btn btn-primary btn-small", onClick: () => document.getElementById("field-search")?.focus() }, icon("a-search"), "Caută un text")),
+    ),
+    card("Scurtături", "Cele mai frecvente modificări.",
+      el("div", { class: "shortcuts" },
+        shortcut("hours", "Schimbă programul", "Orele pe zile și zilele libere"),
+        shortcut("announcement", "Pune un anunț", "O bandă vizibilă sus pe site"),
+        shortcut("services", "Editează serviciile", "Nume, descrieri și durate"),
+        shortcut("hero", "Prima pagină", "Titlul, textele și poza principală"),
+        shortcut("booking", "Textele programărilor", "Formularul, calendarul și mesajele"),
+        shortcut("contact", "Telefon și adresă", "Datele de contact și rețelele"),
+        shortcut("gallery", "Poze din salon", "Raftul 3D din Despre noi"),
+        shortcut("history", "Revino la o versiune", "Dacă ai greșit ceva"),
+      ),
+    ),
+    card("Cum funcționează", null,
+      el("ol", { class: "how" },
+        el("li", {}, el("strong", { text: "Modifici" }), " textele în secțiunile din stânga. Nimic nu se schimbă pe site până nu publici."),
+        el("li", {}, el("strong", { text: "Previzualizezi" }), " pagina exact cum va arăta, pe calculator, tabletă sau telefon."),
+        el("li", {}, el("strong", { text: "Publici" }), ". Site-ul se actualizează singur în aproximativ un minut."),
+      ),
+    ),
+  ];
+}
+
+/* ---------- Căutare ---------- */
+function renderSearch(query) {
+  const words = fold(query).split(/\s+/).filter(Boolean);
+  const hit = (...values) => {
+    const haystack = fold(values.flat().join(" "));
+    return words.every((word) => haystack.includes(word));
+  };
+  const groups = new Map();
+  const add = (section, cardIndex, payload) => {
+    const key = `${section.id}:${cardIndex}`;
+    if (!groups.has(key)) groups.set(key, { section, cardDef: section.cards[cardIndex], cardIndex, fields: [], listHit: null });
+    const group = groups.get(key);
+    if (payload.listHit) group.listHit = payload.listHit;
+    else group.fields.push(payload);
+  };
+  const shorten = (value) => (value.length > 60 ? `${value.slice(0, 57)}…` : value);
+  for (const { section, cardDef, cardIndex, field: fieldDef } of fieldEntries()) {
+    if (hit(section.label, cardDef.title, fieldDef.label, fieldDef.hint, getPath(state.content, fieldDef.path))) add(section, cardIndex, fieldDef);
+  }
+  SECTIONS.forEach((section) => {
+    (section.cards || []).forEach((cardDef, cardIndex) => {
+      if (!cardDef.find) return;
+      const values = cardDef.find().filter(Boolean).map(String);
+      if (!hit(section.label, cardDef.title, cardDef.desc, values)) return;
+      const matched = values.filter((value) => words.some((word) => fold(value).includes(word)));
+      add(section, cardIndex, { listHit: matched.slice(0, 3).map((value) => `„${shorten(squash(value))}”`) });
+    });
+  });
+  const total = [...groups.values()].reduce((sum, group) => sum + group.fields.length + (group.listHit ? 1 : 0), 0);
+  const results = [...groups.values()].map((group) =>
+    el("section", { class: "card search-hit" },
+      el("div", { class: "card-head" },
+        el("p", { class: "crumb", text: `${group.section.label} › ${group.cardDef.title}` }),
+        el("button", { type: "button", class: "btn btn-ghost btn-small", onClick: () => openSection(group.section.id, true, group.cardIndex) }, "Deschide secțiunea"),
+      ),
+      group.fields.length ? el("div", { class: "card-body" }, grid(group.fields.map(renderField))) : null,
+      group.listHit
+        ? el("div", { class: "card-body" }, note(`${group.listHit.length ? `Găsit în listă: ${group.listHit.join(", ")}. ` : ""}Deschide secțiunea ca să modifici lista.`))
+        : null,
+    ),
+  );
+  return [
+    el("div", { class: "search-head" },
+      el("h1", { class: "section-title", text: "Căutare" }),
+      el("button", { type: "button", class: "btn btn-ghost btn-small", onClick: () => {
+        document.body.classList.add("nav-open");
+        document.getElementById("field-search")?.focus();
+      } }, icon("a-search"), "Caută altceva"),
+    ),
+    el("p", { class: "muted search-count", text: total ? `${total} ${total === 1 ? "rezultat" : "rezultate"} pentru „${query.trim()}”. Poți modifica direct de aici.` : `Niciun câmp nu conține „${query.trim()}”. Încearcă alt cuvânt.` }),
+    ...results,
+  ];
+}
+let searchTimer = 0;
+function onSearchInput(event, now = false) {
+  clearTimeout(searchTimer);
+  const query = event.target.value;
+  const run = () => {
+    if (fold(query).trim().length < 2) {
+      if (state.searching) {
+        state.searching = false;
+        openSection(state.section, false);
+      }
+      return;
+    }
+    state.searching = true;
+    document.querySelectorAll(".side-link").forEach((link) => link.setAttribute("aria-current", "false"));
+    const main = document.getElementById("content");
+    main.replaceChildren(...renderSearch(query));
+    main.scrollTop = 0;
+    window.scrollTo(0, 0);
+  };
+  if (now) run();
+  else searchTimer = setTimeout(run, 160);
 }
 
 function renderHistory() {
@@ -1020,7 +1351,8 @@ async function restoreVersion(commit) {
   try {
     const file = await getFile("index.html", commit.sha);
     const doc = new DOMParser().parseFromString(file.text, "text/html");
-    state.content = readContent(doc);
+    // Versiunile vechi nu au toate câmpurile; ce lipsește se ia de pe pagina actuală.
+    state.content = applyDefaults(readContent(doc), doc, new DOMParser().parseFromString(state.html, "text/html"));
     state.uploads = [];
     changed();
     toast(`Am încărcat versiunea din ${formatDate(commit.commit.author.date)}. Verific-o și apasă Publică.`);
@@ -1148,6 +1480,11 @@ function validate(content) {
     if (!item.closed && !(item.open < item.close)) problems.push(`${DAY_LONG[item.day]}: ora de închidere trebuie să fie după ora de deschidere.`);
   });
   if (content.hours.every((item) => item.closed)) problems.push("Programul nu poate avea toate zilele închise.");
+  for (const { section, field: fieldDef } of fieldEntries()) {
+    if (fieldDef.opt || fieldDef.kind) continue;
+    const value = getPath(content, fieldDef.path);
+    if (typeof value === "string" && !value.trim()) problems.push(`${section.label}: „${fieldDef.label}” nu poate fi gol.`);
+  }
   ["facebook", "instagram", "tiktok", "mapsUrl"].forEach((key) => {
     if (content.contact[key] && !safeUrl(content.contact[key])) problems.push(`Linkul ${key} nu este valid.`);
   });
@@ -1216,7 +1553,7 @@ function openPreview() {
 
 function changedSections() {
   const before = JSON.parse(state.originalJson);
-  const names = { announcement: "Anunț", hero: "Prima pagină", about: "Despre noi", gallery: "Galerie", services: "Servicii", servicesSection: "Servicii", marquee: "Servicii", process: "Cum funcționează", hours: "Program", closedDates: "Zile libere", booking: "Programări", contact: "Contact", social: "TikTok", reviews: "Recenzii", faq: "Întrebări", contactSection: "Contact", footer: "Subsol", seo: "Google" };
+  const names = { announcement: "Anunț", siteName: "Meniu", header: "Meniu", status: "Meniu", hero: "Prima pagină", about: "Despre noi", gallery: "Galerie", services: "Servicii", servicesSection: "Servicii", marquee: "Servicii", process: "Cum funcționează", hours: "Program", closedDates: "Zile libere", booking: "Programări", contact: "Contact", social: "TikTok", reviews: "Recenzii", faq: "Întrebări", contactSection: "Contact", footer: "Subsol", seo: "Google" };
   const list = Object.keys(names).filter((key) => JSON.stringify(before[key]) !== JSON.stringify(state.content[key])).map((key) => names[key]);
   return [...new Set(list)];
 }
@@ -1243,7 +1580,8 @@ async function publish() {
       await putFile(upload.path, upload.base64, `Panou de administrare: imagine nouă ${where}`);
     }
     const latest = await getFile("index.html");
-    const latestContent = readContent(new DOMParser().parseFromString(latest.text, "text/html"));
+    const latestDoc = new DOMParser().parseFromString(latest.text, "text/html");
+    const latestContent = applyDefaults(readContent(latestDoc), latestDoc);
     if (JSON.stringify(latestContent) !== state.originalJson && !confirm("Site-ul a fost modificat din alt loc de când ai deschis panoul. Publici peste acele modificări?")) {
       throw Object.assign(new Error("Publicare anulată."), { cancelled: true });
     }
@@ -1320,7 +1658,22 @@ function renderApp(section = state.section) {
   app.replaceChildren();
   const nav = el("nav", { class: "side", "aria-label": "Secțiunile panoului" },
     el("a", { class: "side-brand", href: "../", target: "_blank", rel: "noopener" }, el("img", { src: "../assets/logo-mark.svg", alt: "", width: 40, height: 40 }), el("span", {}, el("strong", { text: "Arr Grooming" }), el("small", { text: "Panou de administrare" }))),
-    el("ul", {}, SECTIONS.map((item) => el("li", {}, el("button", { type: "button", class: "side-link", "data-section": item.id, onClick: () => openSection(item.id) }, icon(item.icon), el("span", { text: item.label }))))),
+    el("div", { class: "side-search" },
+      el("label", { class: "visually-hidden", for: "field-search", text: "Caută un text" }),
+      icon("a-search"),
+      el("input", { type: "search", id: "field-search", placeholder: "Caută un text…", autocomplete: "off", spellcheck: "false", enterkeyhint: "search", onInput: onSearchInput, onKeydown: (event) => {
+        // Pe telefon, tasta de căutare închide meniul ca să se vadă rezultatele.
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        onSearchInput(event, true);
+        document.body.classList.remove("nav-open");
+        event.target.blur();
+      } }),
+    ),
+    el("ul", {}, SECTIONS.map((item) => [
+      item.group ? el("li", { class: "side-group", "aria-hidden": "true", text: item.group }) : null,
+      el("li", {}, el("button", { type: "button", class: "side-link", "data-section": item.id, onClick: () => openSection(item.id) }, icon(item.icon), el("span", { text: item.label }))),
+    ])),
   );
   const menuButton = el("button", { type: "button", class: "icon-btn menu-btn", "aria-label": "Meniu", onClick: () => document.body.classList.toggle("nav-open") }, icon("a-menu"));
   const top = el("header", { class: "top" },
@@ -1338,17 +1691,24 @@ function renderApp(section = state.section) {
   changed();
   openSection(section, false);
 }
-function openSection(id, focus = true) {
+function openSection(id, focus = true, cardIndex = null) {
   const section = SECTIONS.find((item) => item.id === id) || SECTIONS[0];
   state.section = section.id;
+  if (state.searching) {
+    state.searching = false;
+    const search = document.getElementById("field-search");
+    if (search) search.value = "";
+  }
   document.body.classList.remove("nav-open");
   document.querySelectorAll(".side-link").forEach((link) => link.setAttribute("aria-current", link.dataset.section === section.id ? "page" : "false"));
   const main = document.getElementById("content");
-  main.replaceChildren(el("h1", { class: "section-title", text: section.label }), ...[section.render()].flat());
+  const body = section.cards ? renderSectionCards(section) : [section.render()].flat();
+  main.replaceChildren(el("h1", { class: "section-title", text: section.label }), ...body);
   if (section.id === "start") main.querySelector(".section-title").remove();
   main.scrollTop = 0;
   window.scrollTo(0, 0);
   if (focus) main.focus({ preventScroll: true });
+  if (cardIndex != null) document.getElementById(`card-${section.id}-${cardIndex}`)?.scrollIntoView({ block: "start" });
 }
 
 /* ---------------------------------------------------------------------------

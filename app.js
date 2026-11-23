@@ -12,6 +12,16 @@ const CONTENT = (() => {
   }
 })();
 
+// Texte editabile din panou; dacă lipsesc, se folosesc cele implicite.
+const TEXT = (path, fallback) => {
+  const value = path.split(".").reduce((node, key) => (node == null ? undefined : node[key]), CONTENT);
+  return typeof value === "string" && value.trim() ? value : fallback;
+};
+
+// Text cu câmpuri de completat, de exemplu „Deschis acum · până la {ora}”.
+const TPL = (path, fallback, vars = {}) =>
+  TEXT(path, fallback).replace(/\{(\w+)\}/g, (match, key) => (key in vars ? String(vars[key]) : match));
+
 const toMinutes = (value) => {
   const [h, m] = String(value || "0:0").split(":").map(Number);
   return (h || 0) * 60 + (m || 0);
@@ -264,22 +274,24 @@ function openingStatus() {
   const today = hoursOn(date, day);
   if (today && minutes >= today[0] && minutes < today[1]) {
     const until = fmtTime(today[1]);
-    return { open: true, day, long: `Deschis acum · până la ${until}`, short: `Deschis acum · până la ${until}` };
+    const text = TPL("status.openUntil", "Deschis acum · până la {ora}", { ora: until });
+    return { open: true, day, long: text, short: text };
   }
   if (today && minutes < today[0]) {
     const at = fmtTime(today[0]);
-    return { open: false, day, long: `Închis acum · deschidem azi la ${at}`, short: `Deschidem azi la ${at}` };
+    return { open: false, day, long: TPL("status.closedToday", "Închis acum · deschidem azi la {ora}", { ora: at }), short: TPL("status.opensToday", "Deschidem azi la {ora}", { ora: at }) };
   }
   for (let offset = 1; offset <= 30; offset++) {
     const next = isoShift(date, offset);
     const hours = hoursOn(next.iso, next.day);
     if (hours) {
-      const when = offset === 1 ? "mâine" : offset < 7 ? DAY_NAMES[next.day] : `pe ${next.iso.split("-").reverse().slice(0, 2).join(".")}`;
+      const when = offset === 1 ? TEXT("status.tomorrow", "mâine") : offset < 7 ? DAY_NAMES[next.day] : `pe ${next.iso.split("-").reverse().slice(0, 2).join(".")}`;
       const at = fmtTime(hours[0]);
-      return { open: false, day, long: `Închis acum · deschidem ${when} la ${at}`, short: `Deschidem ${when} la ${at}` };
+      return { open: false, day, long: TPL("status.closedNext", "Închis acum · deschidem {cand} la {ora}", { cand: when, ora: at }), short: TPL("status.opensNext", "Deschidem {cand} la {ora}", { cand: when, ora: at }) };
     }
   }
-  return { open: false, day, long: "Închis", short: "Închis" };
+  const closed = TEXT("status.closed", "Închis");
+  return { open: false, day, long: closed, short: closed };
 }
 function renderStatus() {
   const status = openingStatus();
@@ -304,7 +316,7 @@ setInterval(renderStatus, 60000);
   const format = new Intl.DateTimeFormat("ro-RO", { weekday: "long", day: "numeric", month: "long" });
   const title = document.createElement("p");
   title.className = "closed-days-title";
-  title.textContent = "Zile în care salonul este închis";
+  title.textContent = TEXT("contactSection.closedDaysTitle", "Zile în care salonul este închis");
   const list = document.createElement("ul");
   upcoming.forEach(([day, note]) => {
     const [y, m, d] = day.split("-").map(Number);
@@ -705,7 +717,7 @@ setupAccordion($$(".faq-item"));
 $$("[data-copy]").forEach((button) => {
   button.addEventListener("click", async () => {
     const ok = await copyText(button.dataset.copy);
-    showToast(ok ? "Numărul a fost copiat." : `Numărul nostru: ${button.dataset.copy}`);
+    showToast(ok ? TEXT("contactSection.copied", "Numărul a fost copiat.") : TPL("contactSection.copyFallback", "Numărul nostru: {telefon}", { telefon: button.dataset.copy }));
     button.classList.add("copied");
     setTimeout(() => button.classList.remove("copied"), 1600);
   });
@@ -768,9 +780,10 @@ function initBooking() {
   const DAY_ARTICLED = ["duminica", "lunea", "marțea", "miercurea", "joia", "vinerea", "sâmbăta"];
   const closedWeekdays = [1, 2, 3, 4, 5, 6, 0].filter((day) => !SALON.hours[day]).map((day) => DAY_ARTICLED[day]);
   const closedText = closedWeekdays.length
-    ? `${capitalize(joinRo(closedWeekdays))} salonul este închis.`
-    : "Salonul este deschis în fiecare zi.";
-  const defaultNote = `${closedText} Poți trimite cereri cu până la ${SALON.horizonDays} de zile înainte.`;
+    ? TPL("booking.calendar.closedDays", "{zile} salonul este închis.", { zile: capitalize(joinRo(closedWeekdays)) })
+    : TEXT("booking.calendar.openDaily", "Salonul este deschis în fiecare zi.");
+  const horizonText = TPL("booking.calendar.horizon", "Poți trimite cereri cu până la {zile} de zile înainte.", { zile: SALON.horizonDays });
+  const defaultNote = `${closedText} ${horizonText}`;
   calNote.textContent = defaultNote;
 
   const currentService = () => SERVICES.find((service) => service.id === state.service) || null;
@@ -811,15 +824,17 @@ function initBooking() {
     full: ", fără ore libere",
   };
   const stateNote = {
-    closed: `${closedText} Alege altă zi.`,
-    past: "Ziua aceasta a trecut. Alege o zi din viitor.",
-    out: `Poți trimite cereri cu până la ${SALON.horizonDays} de zile înainte.`,
-    full: "Pentru această zi nu mai sunt ore potrivite. Alege altă zi.",
+    closed: `${closedText} ${TEXT("booking.calendar.pickOther", "Alege altă zi.")}`,
+    past: TEXT("booking.calendar.past", "Ziua aceasta a trecut. Alege o zi din viitor."),
+    out: horizonText,
+    full: TEXT("booking.calendar.full", "Pentru această zi nu mai sunt ore potrivite. Alege altă zi."),
   };
   const noteFor = (status, date) => {
     if (status !== "holiday") return stateNote[status];
     const note = holidayNote(date);
-    return `În această zi salonul este închis${note ? ` (${note})` : ""}. Alege altă zi.`;
+    return note
+      ? TPL("booking.calendar.holidayReason", "În această zi salonul este închis ({motiv}). Alege altă zi.", { motiv: note })
+      : TEXT("booking.calendar.holiday", "În această zi salonul este închis. Alege altă zi.");
   };
 
   function renderServices() {
@@ -885,8 +900,8 @@ function initBooking() {
 
   function renderSlots() {
     if (!state.date) {
-      slotsTitle.textContent = "Alege o zi din calendar";
-      slotsSub.textContent = "Îți arătăm orele potrivite pentru durata serviciului ales.";
+      slotsTitle.textContent = TEXT("booking.messages.pickDay", "Alege o zi din calendar");
+      slotsSub.textContent = TEXT("booking.messages.pickDaySub", "Îți arătăm orele potrivite pentru durata serviciului ales.");
       slotGroups.innerHTML = "";
       return;
     }
@@ -894,14 +909,14 @@ function initBooking() {
     const service = currentService();
     slotsTitle.textContent = fmtDay.format(state.date);
     slotsSub.textContent = service
-      ? `Ore de început pentru ${service.name.toLowerCase()}, aprox. ${fmtDuration(duration())}.`
-      : "Alege și serviciul, ca să-ți arătăm orele potrivite duratei lui.";
+      ? TPL("booking.messages.slotsFor", "Ore de început pentru {serviciu}, aprox. {durata}.", { serviciu: service.name.toLowerCase(), durata: fmtDuration(duration()) })
+      : TEXT("booking.messages.pickService", "Alege și serviciul, ca să-ți arătăm orele potrivite duratei lui.");
     if (state.time !== null && !list.includes(state.time)) {
       state.time = null;
-      showToast("Ora aleasă nu se mai potrivește. Te rugăm să alegi alta.");
+      showToast(TEXT("booking.messages.slotGone", "Ora aleasă nu se mai potrivește. Te rugăm să alegi alta."));
     }
     if (!list.length) {
-      slotGroups.innerHTML = `<div class="slots-empty"><svg class="icon" aria-hidden="true"><use href="#i-calendar"></use></svg><p>Nu mai sunt ore potrivite în această zi. Alege altă zi.</p></div>`;
+      slotGroups.innerHTML = `<div class="slots-empty"><svg class="icon" aria-hidden="true"><use href="#i-calendar"></use></svg><p>${escapeHtml(TEXT("booking.messages.noSlots", "Nu mai sunt ore potrivite în această zi. Alege altă zi."))}</p></div>`;
       return;
     }
     const groups = [
@@ -934,7 +949,7 @@ function initBooking() {
   function updateSummary() {
     const service = currentService();
     const length = duration();
-    setSummary("pet", state.pet === "cat" ? "Pisică" : `Câine, ${SIZES[state.size]}`);
+    setSummary("pet", state.pet === "cat" ? TEXT("booking.form.cat", "Pisică") : `${TEXT("booking.form.dog", "Câine")}, ${SIZES[state.size]}`);
     setSummary("service", service ? service.name : "-");
     setSummary("duration", length ? `aprox. ${fmtDuration(length)}` : "-");
     setSummary("date", state.date ? capitalize(fmtDay.format(state.date)) : "-");
@@ -952,10 +967,10 @@ function initBooking() {
     if (!state.date) missing.push("ziua");
     if (state.time === null) missing.push("ora");
     hint.textContent = missing.length
-      ? `Mai ai de ales: ${joinRo(missing)}.`
+      ? `${TEXT("booking.messages.missing", "Mai ai de ales:")} ${joinRo(missing)}.`
       : done["step-details"]
-        ? "Totul e pregătit. Trimite cererea!"
-        : "Mai completează numele tău, telefonul și numele blănosului.";
+        ? TEXT("booking.messages.ready", "Totul e pregătit. Trimite cererea!")
+        : TEXT("booking.messages.needDetails", "Mai completează numele tău, telefonul și numele blănosului.");
   }
 
   function refresh() {
@@ -1067,15 +1082,15 @@ function initBooking() {
     const phone = fields.phone.value.replace(/[\s.\-()/]/g, "");
     const petName = fields.petName.value.trim();
     if (name.length < 2) {
-      setError(fields.name, "Spune-ne cum te numești.");
+      setError(fields.name, TEXT("booking.messages.errName", "Spune-ne cum te numești."));
       first ||= fields.name;
     }
     if (!/^(?:(?:\+|00)?40|0)[2-37]\d{8}$/.test(phone) && !/^\+\d{8,15}$/.test(phone)) {
-      setError(fields.phone, "Introdu un număr valid, de exemplu 0722 123 456.");
+      setError(fields.phone, TEXT("booking.messages.errPhone", "Introdu un număr valid, de exemplu 0722 123 456."));
       first ||= fields.phone;
     }
     if (!petName) {
-      setError(fields.petName, "Cum îl cheamă pe blănos?");
+      setError(fields.petName, TEXT("booking.messages.errPet", "Cum îl cheamă pe blănos?"));
       first ||= fields.petName;
     }
     return first;
@@ -1098,7 +1113,7 @@ function initBooking() {
     const length = duration();
     const breed = fields.breed.value.trim();
     const notes = fields.notes.value.trim();
-    const petLabel = state.pet === "cat" ? "pisică" : `câine, ${SIZES[state.size]}`;
+    const petLabel = state.pet === "cat" ? TEXT("booking.form.cat", "Pisică").toLowerCase() : `${TEXT("booking.form.dog", "Câine").toLowerCase()}, ${SIZES[state.size]}`;
     const data = {
       service: service.id,
       serviceName: service.name,
@@ -1117,17 +1132,17 @@ function initBooking() {
       notes,
     };
     data.message = [
-      `Bună ziua! Aș dori o programare la ${SALON.name}.`,
+      TPL("booking.messages.greeting", "Bună ziua! Aș dori o programare la {salon}.", { salon: SALON.name }),
       "",
-      `Serviciu: ${data.serviceName}`,
-      `Blănos: ${data.petName} (${petLabel}${breed ? `, ${breed}` : ""})`,
-      `Ziua: ${data.dateLabel}`,
-      `Ora: ${data.timeLabel} (durată estimată: aprox. ${fmtDuration(length)})`,
-      `Nume: ${data.name}`,
-      `Telefon: ${data.phone}`,
-      notes ? `Observații: ${notes}` : null,
+      `${TEXT("booking.summary.service", "Serviciu")}: ${data.serviceName}`,
+      `${TEXT("booking.summary.pet", "Blănos")}: ${data.petName} (${petLabel}${breed ? `, ${breed}` : ""})`,
+      `${TEXT("booking.summary.date", "Ziua")}: ${data.dateLabel}`,
+      `${TEXT("booking.summary.time", "Ora")}: ${data.timeLabel} (durată estimată: aprox. ${fmtDuration(length)})`,
+      `${TEXT("booking.messages.waName", "Nume")}: ${data.name}`,
+      `${TEXT("booking.messages.waPhone", "Telefon")}: ${data.phone}`,
+      notes ? `${TEXT("booking.messages.waNotes", "Observații")}: ${notes}` : null,
       "",
-      "Mulțumesc!",
+      TEXT("booking.messages.thanks", "Mulțumesc!"),
     ]
       .filter((line) => line !== null)
       .join("\n");
@@ -1183,24 +1198,29 @@ function initBooking() {
   const dialogDesc = $("#bd-desc");
   const dialogSummary = $("#bd-summary");
 
+  function setDialogTitle(title, accent) {
+    const em = document.createElement("em");
+    em.textContent = accent;
+    dialogTitle.replaceChildren(document.createTextNode(`${title} `), em);
+  }
   function openDialog(data, delivered) {
     lastRequest = data;
     const text = encodeURIComponent(data.message);
     whatsappLink.href = `https://wa.me/${SALON.whatsapp}?text=${text}`;
     smsLink.href = `sms:${SALON.phone}?&body=${text}`;
     const rows = [
-      ["Serviciu", data.serviceName],
-      ["Blănos", `${data.petName} · ${data.petLabel}`],
-      ["Ziua", capitalize(data.dateLabel)],
-      ["Ora", `${data.timeLabel} · aprox. ${fmtDuration(data.duration)}`],
+      [TEXT("booking.summary.service", "Serviciu"), data.serviceName],
+      [TEXT("booking.summary.pet", "Blănos"), `${data.petName} · ${data.petLabel}`],
+      [TEXT("booking.summary.date", "Ziua"), capitalize(data.dateLabel)],
+      [TEXT("booking.summary.time", "Ora"), `${data.timeLabel} · aprox. ${fmtDuration(data.duration)}`],
     ];
     dialogSummary.innerHTML = rows.map(([key, value]) => `<div><dt>${key}</dt><dd>${escapeHtml(value)}</dd></div>`).join("");
     if (delivered) {
-      dialogTitle.innerHTML = "Cererea a ajuns <em>la noi.</em>";
-      dialogDesc.textContent = "Te sunăm în curând să confirmăm ora și prețul. Dacă vrei, ne poți scrie și direct.";
+      setDialogTitle(TEXT("booking.dialog.sentTitle", "Cererea a ajuns"), TEXT("booking.dialog.sentAccent", "la noi."));
+      dialogDesc.textContent = TEXT("booking.dialog.sentDesc", "Te sunăm în curând să confirmăm ora și prețul. Dacă vrei, ne poți scrie și direct.");
     } else {
-      dialogTitle.innerHTML = "Cererea ta e <em>gata de trimis.</em>";
-      dialogDesc.textContent = "Alege cum ne trimiți detaliile. Programarea devine sigură după ce te sunăm să o confirmăm.";
+      setDialogTitle(TEXT("booking.dialog.title", "Cererea ta e"), TEXT("booking.dialog.accent", "gata de trimis."));
+      dialogDesc.textContent = TEXT("booking.dialog.desc", "Alege cum ne trimiți detaliile. Programarea devine sigură după ce te sunăm să o confirmăm.");
     }
     if (typeof dialog.showModal === "function") {
       dialog.showModal();
@@ -1212,12 +1232,12 @@ function initBooking() {
 
   booker.addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!currentService()) return flagStep("step-service", "Alege serviciul dorit.");
-    if (!state.date) return flagStep("step-date", "Alege ziua programării.");
-    if (state.time === null) return flagStep("step-date", "Alege ora programării.");
+    if (!currentService()) return flagStep("step-service", TEXT("booking.messages.needService", "Alege serviciul dorit."));
+    if (!state.date) return flagStep("step-date", TEXT("booking.messages.needDay", "Alege ziua programării."));
+    if (state.time === null) return flagStep("step-date", TEXT("booking.messages.needTime", "Alege ora programării."));
     const invalid = validateFields();
     if (invalid) {
-      flagStep("step-details", "Verifică datele de contact.");
+      flagStep("step-details", TEXT("booking.messages.checkDetails", "Verifică datele de contact."));
       setTimeout(() => invalid.focus({ preventScroll: true }), 350);
       return;
     }
@@ -1250,12 +1270,12 @@ function initBooking() {
     dialog.addEventListener("close", requestScrollUpdate);
     $("#bd-copy").addEventListener("click", async () => {
       if (!lastRequest) return;
-      showToast((await copyText(lastRequest.message)) ? "Detaliile au fost copiate." : "Nu am putut copia automat.");
+      showToast((await copyText(lastRequest.message)) ? TEXT("booking.messages.copied", "Detaliile au fost copiate.") : TEXT("booking.messages.copyFailed", "Nu am putut copia automat."));
     });
     $("#bd-ics").addEventListener("click", () => {
       if (!lastRequest) return;
       downloadIcs(lastRequest);
-      showToast("Evenimentul a fost descărcat pentru calendarul tău.");
+      showToast(TEXT("booking.messages.icsDone", "Evenimentul a fost descărcat pentru calendarul tău."));
     });
   }
 
@@ -1273,7 +1293,7 @@ function initBooking() {
       renderServices();
       refresh();
       $("#step-pet").scrollIntoView({ behavior: reducedMotion.matches ? "auto" : "smooth", block: "start" });
-      showToast(`Ai ales: ${service.name}. Acum alege ziua și ora.`);
+      showToast(TPL("booking.messages.servicePicked", "Ai ales: {serviciu}. Acum alege ziua și ora.", { serviciu: service.name }));
     });
   });
 
