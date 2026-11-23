@@ -935,10 +935,10 @@ function initBooking() {
     const service = currentService();
     const length = duration();
     setSummary("pet", state.pet === "cat" ? "Pisică" : `Câine, ${SIZES[state.size]}`);
-    setSummary("service", service ? service.name : "–");
-    setSummary("duration", length ? `aprox. ${fmtDuration(length)}` : "–");
-    setSummary("date", state.date ? capitalize(fmtDay.format(state.date)) : "–");
-    setSummary("time", state.time !== null ? `${fmtTime(state.time)}${length ? ` – ${fmtTime(state.time + length)}` : ""}` : "–");
+    setSummary("service", service ? service.name : "-");
+    setSummary("duration", length ? `aprox. ${fmtDuration(length)}` : "-");
+    setSummary("date", state.date ? capitalize(fmtDay.format(state.date)) : "-");
+    setSummary("time", state.time !== null ? `${fmtTime(state.time)}${length ? ` - ${fmtTime(state.time + length)}` : ""}` : "-");
     const done = {
       "step-pet": true,
       "step-service": Boolean(service),

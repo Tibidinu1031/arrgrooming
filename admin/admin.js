@@ -11,7 +11,7 @@ import {
   safeUrl,
   serializeDocument,
   summarizeHours,
-} from "./render.js?v=20261121";
+} from "./render.js?v=20261123";
 
 /* ---------------------------------------------------------------------------
    Configurare
@@ -557,7 +557,7 @@ function renderHero() {
         text("hero.lead", "Descriere sub titlu", { multiline: 3, max: 220 }),
         text("hero.chip", "Eticheta de pe imagine", { max: 24 }),
       ),
-      note("Titlul se adaptează automat ca să încapă în ecran. Păstrează-l scurt: 3–5 cuvinte arată cel mai bine."),
+      note("Titlul se adaptează automat ca să încapă în ecran. Păstrează-l scurt: 3-5 cuvinte arată cel mai bine."),
     ),
     card("Imaginea principală", "Cel mai bine arată o poză decupată (fundal transparent, PNG sau WebP), în format vertical.",
       el("div", { class: "hero-image" },
@@ -836,7 +836,7 @@ function renderHours() {
     const row = el("div", { class: "hours-row" },
       el("strong", { text: DAY_LONG[day] }),
       el("label", { class: "switch", for: `day-${day}` }, isOpen, el("span", { class: "switch-ui", "aria-hidden": "true" }), stateText),
-      el("div", { class: "hours-times" }, open, el("span", { text: "–" }), close),
+      el("div", { class: "hours-times" }, open, el("span", { text: "-" }), close),
     );
     table.append(row);
     sync();

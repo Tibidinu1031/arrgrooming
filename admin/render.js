@@ -80,11 +80,11 @@ export function summarizeHours(hours, mode = "short") {
   if (mode === "short") {
     return groups
       .filter((group) => group.key !== "closed")
-      .map((group) => `${label(group.days, DAY_SHORT, "–")} ${group.item.open}–${group.item.close}`)
+      .map((group) => `${label(group.days, DAY_SHORT, "-")} ${group.item.open}-${group.item.close}`)
       .join(" · ");
   }
   return groups.map(
-    (group) => `${label(group.days, DAY_LONG, " – ")}: ${group.key === "closed" ? "închis" : `${group.item.open} – ${group.item.close}`}`,
+    (group) => `${label(group.days, DAY_LONG, " - ")}: ${group.key === "closed" ? "închis" : `${group.item.open} - ${group.item.close}`}`,
   );
 }
 
@@ -250,7 +250,7 @@ const LISTS = {
     return DAY_ORDER.map((day) => {
       const item = map[day] || { closed: true };
       return `
-                <div data-day="${day}"><span>${DAY_LONG[day]}</span><strong>${item.closed ? "Închis" : `${esc(item.open)} – ${esc(item.close)}`}</strong></div>`;
+                <div data-day="${day}"><span>${DAY_LONG[day]}</span><strong>${item.closed ? "Închis" : `${esc(item.open)} - ${esc(item.close)}`}</strong></div>`;
     }).join("");
   },
 };

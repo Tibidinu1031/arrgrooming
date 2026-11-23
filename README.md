@@ -1,4 +1,4 @@
-# Arr Grooming Salon — site de prezentare
+# Arr Grooming Salon - site de prezentare
 
 Site static, responsive, în limba română, pentru **Arr Grooming Salon**, salon de grooming pentru câini și pisici din Galați. `index.html` din rădăcina proiectului este pagina principală. Tot ce trebuie pentru rulare este inclus local: CSS, JavaScript, fonturi și imagini. Nu e nevoie de framework, instalări, backend sau build.
 
@@ -76,7 +76,7 @@ Câinele din hero (`assets/hero-dog.webp`, decupat de pe fundal) este o fotograf
 De confirmat cu clientul înainte de lansare:
 
 - lista de servicii și duratele estimative (prețurile nu sunt afișate, se comunică la telefon);
-- programul: Google indică L–V 09:00–18:00 și S 09:00–14:00, iar Notino indică deschidere luni de la 10:00;
+- programul: Google indică L-V 09:00-18:00 și S 09:00-14:00, iar Notino indică deschidere luni de la 10:00;
 - dacă salonul folosește WhatsApp pe numărul 0744 134 819;
 - numele groomerului (Notino listează echipa: Daniel).
 
